@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Mass Multiplayer</title>
+    <title>TWD: Tower Survival - Nicknames & Keys Update</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -18,6 +18,7 @@
         .hud-text { font-size: 16px; color: #fff; font-weight: bold; margin-top: 4px; }
         #money-ui { color: #4caf50; font-size: 20px; }
         #xp-ui { color: #9c27b0; font-size: 18px; }
+        #key-ui { color: #ffd700; font-size: 18px; margin-top: 5px; font-weight: bold; }
         
         #resources-ui { margin-top: 10px; font-size: 14px; color: #ddd; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 5px; border: 1px solid #333; }
 
@@ -60,7 +61,8 @@
         <div class="bar-bg"><div id="stam-bar" class="bar-fill"></div></div>
         <div class="hud-text" id="money-ui">$0</div>
         <div class="hud-text" id="xp-ui">XP [online]: 0</div>
-        <div class="hud-text" id="weapon-ui">Mačeta</div>
+        <div id="key-ui">Klíč od patra: NE</div>
+        <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
         <div class="hud-text" id="grenade-ui" style="color:#ff9800;">Granáty: 0 | Barikády: 0</div>
         <div id="resources-ui">Šrot: <span id="res-sc">0</span> | Látka: <span id="res-cl">0</span><br>Chem: <span id="res-ch">0</span> | Dřevo: <span id="res-wd">0</span></div>
@@ -171,7 +173,6 @@
 </div>
 
 <script>
-// --- CORE SETUP ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -192,7 +193,6 @@ try {
     if(u) { upgrades.hp = u.hp||0; upgrades.spd = u.spd||0; upgrades.gren = u.gren||0; }
 } catch(e) {}
 
-// --- AUDIO SFX [online] ---
 let actx = null;
 const SFX = {
     play(type) {
@@ -205,6 +205,7 @@ const SFX = {
             if (type === 'shoot') { osc.type='square'; osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(0.01, t+0.1); gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.1); osc.start(t); osc.stop(t+0.1); }
             else if (type === 'boom') { osc.type='sawtooth'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(0.01, t+0.5); gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.5); osc.start(t); osc.stop(t+0.5); }
             else if (type === 'hit') { osc.type='triangle'; osc.frequency.setValueAtTime(80, t); osc.frequency.exponentialRampToValueAtTime(10, t+0.1); gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.1); osc.start(t); osc.stop(t+0.1); }
+            else if (type === 'key') { osc.type='sine'; osc.frequency.setValueAtTime(400, t); osc.frequency.exponentialRampToValueAtTime(800, t+0.2); gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.2); osc.start(t); osc.stop(t+0.2); }
         } catch(e) {}
     }
 };
@@ -252,7 +253,7 @@ function isWall(x, y, r, grid) {
 let peer = null;
 const Net = {
     active: false, isHost: true, conns: {}, 
-    clientsData: {}, // { id: {x, y, ang, c: color} }
+    clientsData: {}, 
     hostData: null, myId: null,
     
     initHost() {
@@ -261,7 +262,7 @@ const Net = {
         peer.on('connection', c => {
             this.active = true; this.isHost = true;
             this.conns[c.peer] = c;
-            this.clientsData[c.peer] = { x: 400, y: 400, ang: 0, c: '#'+Math.floor(Math.random()*16777215).toString(16) };
+            this.clientsData[c.peer] = { x: 400, y: 400, ang: 0, c: '#'+Math.floor(Math.random()*16777215).toString(16), name: "Připojování..." };
             
             document.getElementById('host-status').innerText = `Připojeno hráčů: ${Object.keys(this.conns).length}. Můžeš spustit hru.`;
             document.getElementById('btn-start-multi').style.display = 'block';
@@ -272,6 +273,7 @@ const Net = {
                         this.clientsData[c.peer].x = data.x;
                         this.clientsData[c.peer].y = data.y;
                         this.clientsData[c.peer].ang = data.ang;
+                        if(data.name) this.clientsData[c.peer].name = data.name;
                     }
                 } else if(data.t === 'shoot') {
                     if(game) game.proj.push(new Projectile(data.x, data.y, data.ang, data.dmg, 'bullet'));
@@ -304,7 +306,10 @@ const Net = {
                         } else if(data.t === 'dmg') { 
                             if(game) game.p.hp -= data.val; 
                         } else if(data.t === 'loot') { 
-                            if(game) { game.p.res[data.res]++; game.p.money+=15; game.p.xp+=5; game.score+=50;} 
+                            if(game) { 
+                                if(data.res === 'key') { game.hasKey = true; SFX.play('key'); }
+                                else { game.p.res[data.res]++; game.p.money+=15; game.p.xp+=5; game.score+=50; }
+                            } 
                         }
                     });
                     c.on('close', () => { alert("Spojení s Hostem ztraceno!"); UI.restartApp(); });
@@ -357,7 +362,7 @@ const UI = {
         document.getElementById('death-screen').style.display='none';
         document.getElementById('hud').style.display='none';
         document.getElementById('wave-ui').style.display='none';
-        if(peer) peer.destroy(); // Zničí staré spojení
+        if(peer) peer.destroy(); 
         Net.active = false; Net.isHost = true; Net.conns = {}; Net.clientsData = {};
         game = null; appState = 'menu';
         this.startMenu();
@@ -365,7 +370,7 @@ const UI = {
 };
 
 function buyUpgrade(t, c) {
-    if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP!');
+    if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP [online]!');
 }
 
 let edCam={x:0,y:0};
@@ -434,11 +439,13 @@ class Player {
     }
     get wep() { return this.weps[this.wIdx]; }
     update(dt, grid) {
-        if(KEYS['1']&&this.weps[0]) this.wIdx=0; if(KEYS['2']&&this.weps[1]) this.wIdx=1;
         let s = (KEYS['shift']&&this.stam>5) ? this.spd*1.5 : this.spd; let vx=0, vy=0;
         if(KEYS['w']) vy-=s; if(KEYS['s']) vy+=s; if(KEYS['a']) vx-=s; if(KEYS['d']) vx+=s;
         if(vx&&vy) { vx*=0.707; vy*=0.707; }
-        let nx=this.x+vx*dt; if(!isWall(nx, this.y, this.r, grid)) this.x=nx; let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, grid)) this.y=ny;
+
+        let nx=this.x+vx*dt; if(!isWall(nx, this.y, this.r, grid)) this.x=nx;
+        let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, grid)) this.y=ny;
+
         if(KEYS['shift']&&(vx||vy)) this.stam-=25*dt; else this.stam=Math.min(100, this.stam+15*dt);
         this.fireT-=dt; this.ang=Math.atan2(MOUSE.y-canvas.height/2, MOUSE.x-canvas.width/2);
     }
@@ -446,11 +453,14 @@ class Player {
         ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang);
         ctx.fillStyle=customColor || '#4a90e2'; ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
         ctx.fillStyle='#333'; ctx.fillRect(10,-3,this.wep? (this.wep.type==='melee'?30:20) : 20,6); ctx.restore();
+        
+        ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(playerName, this.x - cam.x, this.y - cam.y - 25);
     }
 }
 
 class Zombie {
-    constructor(x,y,w) { this.x=x; this.y=y; this.r=15; this.hp=50+w*15; this.maxHp=this.hp; this.spd=60+Math.random()*40+w*2; this.ang=0; this.b=false; }
+    constructor(x,y,w) { this.x=x; this.y=y; this.r=15; this.hp=50+w*15; this.maxHp=this.hp; this.spd=60+Math.random()*40+w*2; this.ang=0; this.isBoss = false; this.hasKey = false; }
     update(dt, targets, mapGrid, bars) {
         let closest = null, minD = Infinity;
         targets.forEach(t => {
@@ -465,20 +475,20 @@ class Zombie {
             let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, mapGrid)) this.y=ny;
             
             if(minD < this.r+15) { 
-                if(closest.id === 'host') { game.p.hp -= (this.b?50:25)*dt; SFX.play('hit'); }
-                else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.b?50:25)*dt});
+                if(closest.id === 'host') { game.p.hp -= (this.isBoss?50:25)*dt; SFX.play('hit'); }
+                else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.isBoss?50:25)*dt});
             }
-            bars.forEach(b=>{if(getDist(this.x,this.y,b.x,b.y)<this.r+20){b.hp-=(this.b?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
+            bars.forEach(b=>{if(getDist(this.x,this.y,b.x,b.y)<this.r+20){b.hp-=(this.isBoss?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
         }
     }
     draw(cam) {
         ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang);
-        ctx.fillStyle=this.hp<this.maxHp/2?'#1f3d14':(this.b?'#550000':'#2e5c1e'); 
+        ctx.fillStyle=this.hp<this.maxHp/2?'#1f3d14':(this.isBoss?'#550000':'#2e5c1e'); 
         ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(7,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(7,5,2,0,Math.PI*2); ctx.fill(); ctx.restore();
+        ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(this.r/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(this.r/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore();
     }
 }
-class Boss extends Zombie { constructor(x,y,w) { super(x,y,w); this.r=30; this.hp=500+w*100; this.maxHp=this.hp; this.spd=50+w*2; this.b=true; } }
+class Boss extends Zombie { constructor(x,y,w) { super(x,y,w); this.r=30; this.hp=500+w*100; this.maxHp=this.hp; this.spd=50+w*2; this.isBoss=true; } }
 
 class Projectile {
     constructor(x,y,a,d,t) { this.x=x; this.y=y; this.a=a; this.d=d; this.t=t; this.act=true; this.timer=t==='gren'?1.5:0;}
@@ -488,7 +498,13 @@ class Projectile {
     }
     draw(cam) { ctx.fillStyle=this.t==='gren'?(this.timer%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(this.x-cam.x, this.y-cam.y, this.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); }
 }
-class Loot { constructor(x,y,t) { this.x=x+(Math.random()-0.5)*20; this.y=y+(Math.random()-0.5)*20; this.t=t; } draw(cam) { const c={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}; ctx.fillStyle=c[this.t]; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); } }
+class Loot { 
+    constructor(x,y,t) { this.x=x+(Math.random()-0.5)*20; this.y=y+(Math.random()-0.5)*20; this.t=t; } 
+    draw(cam) { 
+        if (this.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
+        else { const c={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}; ctx.fillStyle=c[this.t]; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
+    } 
+}
 class Barricade { constructor(x, y) { this.x=x; this.y=y; this.hp=300; } draw(cam) { ctx.fillStyle='#8d6e63'; ctx.fillRect(this.x-cam.x-20, this.y-cam.y-10, 40, 20); } }
 
 // --- GAME MANAGER ---
@@ -496,6 +512,7 @@ class GameManager {
     constructor(clsKey, cGrid) {
         this.map = new GameMap(cGrid); this.p = new Player(this.map.startP, clsKey);
         this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.score=0; this.floor=1; this.wave=0; this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0;
+        this.hasKey = false;
         
         let vw = canvas.width / CFG.ZOOM || 800; let vh = canvas.height / CFG.ZOOM || 600;
         this.cam = {x: this.p.x - vw/2, y: this.p.y - vh/2}; 
@@ -526,6 +543,12 @@ class GameManager {
             document.getElementById('wave-text').innerText = `⚠ BOSS VLNA ${this.wave} ⚠`;
             SFX.play('boom');
         }
+
+        // 50% šance na spawnutí klíče v této vlně (pokud ho už nemáme)
+        if (!this.hasKey && Math.random() < 0.5 && this.z.length > 0) {
+            let keyZomb = this.z[Math.floor(Math.random() * this.z.length)];
+            keyZomb.hasKey = true;
+        }
     }
 
     explode(x,y,rad,dmg) {
@@ -535,10 +558,8 @@ class GameManager {
         if(!Net.active || Net.isHost) {
             this.z.forEach(z => { if(getDist(x,y,z.x,z.y)<rad) z.hp-=dmg; });
             
-            // Damage pro lokálního Hosta
             if(getDist(x,y,this.p.x,this.p.y)<rad/2) this.p.hp-=dmg/3;
             
-            // Damage pro Klienty
             if (Net.active && Net.isHost) {
                 for (let id in Net.clientsData) {
                     if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2) {
@@ -554,8 +575,13 @@ class GameManager {
     useStairs() { 
         if(!Net.active || Net.isHost) { 
             if(getDist(this.p.x, this.p.y, this.map.stairs.x, this.map.stairs.y)<80) { 
-                this.floor++; this.score+=100; this.map=new GameMap(); this.p.x=this.map.startP.x; this.p.y=this.map.startP.y; this.z=[]; this.inter=true; this.timer=5; 
-                if(Net.active) Net.broadcast({t:'init_game', map:{grid:this.map.grid, startP:this.map.startP, stairs:this.map.stairs}}); 
+                if (this.hasKey) {
+                    this.floor++; this.score+=100; this.map=new GameMap(); this.p.x=this.map.startP.x; this.p.y=this.map.startP.y; this.z=[]; this.inter=true; this.timer=5; 
+                    this.hasKey = false;
+                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:this.map.grid, startP:this.map.startP, stairs:this.map.stairs}}); 
+                } else {
+                    alert("K průchodu dveřmi potřebuješ najít ZLATÝ KLÍČ od Zombíka!");
+                }
             } 
         } 
     }
@@ -583,36 +609,34 @@ class GameManager {
     update(dt) {
         if(this.menuOpen) return;
 
-        // MULTIPLAYER SYNC
         if(Net.active) {
             if(Net.isHost) {
-                // Host rozesílá svůj stav + stav mapy + stav všech klientů (včetně barev) všem
                 Net.broadcast({ 
                     t:'state', 
-                    hx:this.p.x, hy:this.p.y, ha:this.p.ang, 
-                    cls: Net.clientsData, // Všichni připojení klienti
+                    hx:this.p.x, hy:this.p.y, ha:this.p.ang, hname: playerName,
+                    cls: Net.clientsData, 
                     z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,b:z.isBoss})), 
                     p:this.proj.map(p=>({x:p.x,y:p.y,a:p.a,t:p.t,tm:p.timer})), 
                     l:this.loot.map(l=>({x:l.x,y:l.y,t:l.t})), 
                     b:this.bars.map(b=>({x:b.x,y:b.y})), 
-                    w:this.wave, tm:this.timer, int:this.inter 
+                    w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
                 });
                 
-                // Kontrola lootnutí klienty
                 this.loot = this.loot.filter(l => { 
                     for (let id in Net.clientsData) {
                         if(getDist(Net.clientsData[id].x, Net.clientsData[id].y, l.x, l.y) < 25) { 
+                            if (l.t === 'key') this.hasKey = true;
                             Net.sendTo(id, {t:'loot', res:l.t}); return false; 
                         }
                     }
                     return true; 
                 });
             } else {
-                // Klient posílá své vstupy Hostovi
-                Net.sendToHost({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang });
+                Net.sendToHost({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang, name: playerName });
                 if(Net.hostData) {
                     this.wave = Net.hostData.w; this.timer = Net.hostData.tm; this.inter = Net.hostData.int;
                     this.z = Net.hostData.z; this.proj = Net.hostData.p; this.loot = Net.hostData.l; this.bars = Net.hostData.b;
+                    this.hasKey = Net.hostData.hk;
                 }
             }
         }
@@ -659,7 +683,6 @@ class GameManager {
                 }
             });
             
-            // Cíle pro zombíky (Host + všichni klienti)
             let targets = [{ x: this.p.x, y: this.p.y, id: 'host' }];
             if (Net.active) {
                 for (let id in Net.clientsData) {
@@ -679,11 +702,19 @@ class GameManager {
                         let drops = z.isBoss ? 5 : 1;
                         for(let i=0;i<drops;i++) this.loot.push(new Loot(z.x, z.y, ['sc','cl','ch','wd'][Math.floor(Math.random()*4)]));
                     }
+                    if (z.hasKey) this.loot.push(new Loot(z.x, z.y, 'key'));
                     return false;
                 } return true;
             });
 
-            this.loot = this.loot.filter(l => { if(getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { this.p.res[l.t]++; return false; } return true; });
+            this.loot = this.loot.filter(l => { 
+                if(getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { 
+                    if (l.t === 'key') { this.hasKey = true; SFX.play('key'); }
+                    else { this.p.res[l.t]++; }
+                    return false; 
+                } 
+                return true; 
+            });
             this.proj = this.proj.filter(pr => pr.act); this.bars = this.bars.filter(b => b.hp > 0);
         }
 
@@ -699,6 +730,8 @@ class GameManager {
         document.getElementById('ammo-ui').innerText = 'Munice: ' + (this.p.wep.ammo !== null ? this.p.wep.ammo : '∞'); document.getElementById('grenade-ui').innerText = `Granáty: ${this.p.grenades} (G) | Barikády: ${this.p.barricades} (F)`;
         document.getElementById('floor-ui').innerText = 'Patro: ' + this.floor;
         document.getElementById('res-sc').innerText = this.p.res.sc; document.getElementById('res-cl').innerText = this.p.res.cl; document.getElementById('res-ch').innerText = this.p.res.ch; document.getElementById('res-wd').innerText = this.p.res.wd;
+        document.getElementById('key-ui').innerText = 'Klíč od patra: ' + (this.hasKey ? 'MÁŠ' : 'NE');
+        document.getElementById('key-ui').style.color = this.hasKey ? '#4caf50' : '#ffd700';
 
         if(this.p.hp <= 0) {
             this.active = false;
@@ -726,23 +759,26 @@ class GameManager {
         this.map.draw(this.cam, vw, vh);
         
         if (Net.active && !Net.isHost && Net.hostData) { 
-            // Kreslení dat od Hosta (když jsi Klient)
-            Net.hostData.l.forEach(l=>{ ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); });
+            Net.hostData.l.forEach(l=>{ 
+                if(l.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+            });
             Net.hostData.b.forEach(b=>{ ctx.fillStyle='#8d6e63'; ctx.fillRect(b.x-this.cam.x-20,b.y-this.cam.y-10,40,20); });
             Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
             Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); ctx.fillStyle=z.h<z.mh/2?'#1f3d14':(z.b?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.b?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.b?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.b?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
             
-            // Nakresli Hosta (Modrý)
+            // Nakresli Hosta
             ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+            ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hname || "Host", Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
             
             // Nakresli ostatní Klienty
             for (let id in Net.hostData.cls) {
-                if (id === Net.myId) continue; // Nekresli sám sebe ze server dat
+                if (id === Net.myId) continue; 
                 let c = Net.hostData.cls[id];
                 ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+                ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
             }
         } else {
-            // Kreslení pro Hosta a Singleplayer
             this.loot.forEach(l=>l.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam));
             this.proj.forEach(pr=>pr.draw(this.cam)); this.z.forEach(z=>z.draw(this.cam));
             
@@ -750,11 +786,11 @@ class GameManager {
                 for (let id in Net.clientsData) {
                     let c = Net.clientsData[id];
                     ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+                    ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
                 }
             }
         }
         
-        // Lokální Hráč (kreslí se vždy, aby nebyla zpožděná odezva pro uživatele)
         let myColor = (Net.active && !Net.isHost && Net.hostData && Net.hostData.cls[Net.myId]) ? Net.hostData.cls[Net.myId].c : '#4a90e2';
         this.p.draw(this.cam, myColor); 
         
@@ -764,7 +800,6 @@ class GameManager {
     }
 }
 
-// --- MAIN LOOP ---
 let lastT = performance.now();
 function mainLoop(t) {
     let dt = (t - lastT) / 1000; lastT = t; 
