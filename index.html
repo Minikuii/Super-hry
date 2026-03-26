@@ -3,136 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - Tvoje Knihovna</title>
+    <title>Výběr Her</title>
     <style>
+        /* Světlé a vzdušné barvy */
         :root {
-            --bg-dark: #0a0c10;
-            --bg-panel: #14181f;
-            --accent-orange: #d97706;
-            --accent-orange-hover: #f59e0b;
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-            --transition: all 0.2s ease-in-out;
+            --bg-main: #f8fafc; /* Velmi jemná modro-šedá */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --accent: #3b82f6; /* Modrá pro běžné hry */
+            --accent-hover: #2563eb;
+            --twd-color: #ea580c; /* Oranžová speciálně pro TWD */
+            --twd-hover: #c2410c;
+            --border-radius: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
         body {
-            font-family: var(--font-family);
-            background-color: var(--bg-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
-            padding: 0;
+            padding: 50px 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
 
-        /* Hlavní kontejner stránky */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            padding: 20px;
+        /* Hlavička stránky */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
         }
 
-        /* Karta pro TWD - hlavní prvek */
-        .twd-card {
-            background-color: var(--bg-panel);
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #1f2937;
-            transition: var(--transition);
-        }
-
-        .twd-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-            border-color: #374151;
-        }
-
-        /* Sekce s obrázkem a grafikou */
-        .twd-hero {
-            background-image: linear-gradient(to bottom, rgba(20, 24, 31, 0.5), rgba(20, 24, 31, 1)), 
-                              url('https://images.unsplash.com/photo-1599661046289-e31897846e41?q=80&w=1600&auto=format&fit=crop'); /* Ilustrační obrázek lesa/pustiny */
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-
-        .twd-title-group h1 {
+        h1 {
             font-size: 2.5rem;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
         }
 
-        .twd-title-group p {
+        p.subtitle {
             color: var(--text-muted);
-            margin: 5px 0 0;
             font-size: 1.1rem;
+            margin: 0;
         }
 
-        /* Sekce s obsahem pod obrázkem */
-        .twd-content {
-            padding: 40px;
+        /* Mřížka pro karty her */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* Jednotlivá karta hry */
+        .game-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #e2e8f0;
         }
 
-        /* Odkaz na složku - tlačítko */
-        .folder-link {
-            display: inline-flex;
+        /* Efekt při najetí myší */
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ikonka nahoře na kartě */
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background-color: #eff6ff;
+            border-radius: 12px;
+            display: flex;
             align-items: center;
-            gap: 12px;
-            background-color: var(--accent-orange);
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .twd-icon { 
+            background-color: #fff7ed; 
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0 0 24px 0;
+            flex-grow: 1; /* Roztáhne text, aby tlačítka byla dole zarovnaná */
+        }
+
+        /* Tlačítka pro otevření složky */
+        .card-link {
+            display: inline-block;
+            text-align: center;
+            background-color: var(--accent);
             color: #ffffff;
             text-decoration: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: var(--transition);
-            box-shadow: 0 4px 6px rgba(217, 119, 6, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
         }
 
-        .folder-link:hover {
-            background-color: var(--accent-orange-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(217, 119, 6, 0.4);
+        .card-link:hover {
+            background-color: var(--accent-hover);
         }
 
-        .icon {
-            font-size: 1.3rem;
+        .twd-link { 
+            background-color: var(--twd-color); 
+        }
+
+        .twd-link:hover { 
+            background-color: var(--twd-hover); 
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="twd-card">
-            <div class="twd-hero">
-                <div class="twd-title-group">
-                    <h1>The Walking Dead</h1>
-                    <p>The Telltale Series</p>
-                </div>
-            </div>
-            
-            <div class="twd-content">
-                <a href="TWD/" class="folder-link">
-                    The Walking Dead: Echo of fallen
-                    
-                </a>
-            </div>
+    <header>
+        <h1>Herní Knihovna</h1>
+        <p class="subtitle">Vyber si složku a začni hrát</p>
+    </header>
+
+    <div class="grid-container">
+        <div class="game-card">
+            <div class="icon-wrapper twd-icon">🧟</div>
+            <h2 class="card-title">The Walking Dead</h2>
+            <p class="card-desc">The Telltale Series. Příběhová adventura plná těžkých rozhodnutí.</p>
+            <a href="hry TWD/" class="card-link twd-link">Otevřít složku</a>
+        </div>
+
+        <div class="game-card">
+            <div class="icon-wrapper">⚔️</div>
+            <h2 class="card-title">Zaklínač 3</h2>
+            <p class="card-desc">Rozlehlý svět, plnění úkolů a epický příběh.</p>
+            <a href="#" class="card-link">Otevřít složku</a>
+        </div>
+
+        <div class="game-card">
+            <div class="icon-wrapper">🏎️</div>
+            <h2 class="card-title">Forza Horizon</h2>
+            <p class="card-desc">Závodní festival. Zde si můžeš upravit odkaz na svou složku.</p>
+            <a href="#" class="card-link">Otevřít složku</a>
         </div>
     </div>
 
