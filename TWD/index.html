@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Nicknames & Keys Update</title>
+    <title>TWD: Tower Survival - Bulletproof Co-op</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -173,6 +173,7 @@
 </div>
 
 <script>
+// --- CORE SETUP ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -190,9 +191,10 @@ let globalXP = 0; let upgrades = { hp: 0, spd: 0, gren: 0 };
 try {
     globalXP = parseInt(localStorage.getItem('twd_xp')) || 0;
     let u = JSON.parse(localStorage.getItem('twd_upgrades'));
-    if(u) { upgrades.hp = u.hp||0; upgrades.spd = u.spd||0; upgrades.gren = u.gren||0; }
+    if(u && typeof u === 'object') { upgrades.hp = parseInt(u.hp)||0; upgrades.spd = parseInt(u.spd)||0; upgrades.gren = parseInt(u.gren)||0; }
 } catch(e) {}
 
+// --- AUDIO SFX [online] ---
 let actx = null;
 const SFX = {
     play(type) {
@@ -276,7 +278,7 @@ const Net = {
                         if(data.name) this.clientsData[c.peer].name = data.name;
                     }
                 } else if(data.t === 'shoot') {
-                    if(game) game.proj.push(new Projectile(data.x, data.y, data.ang, data.dmg, 'bullet'));
+                    if(game) game.proj.push(new Projectile(data.x, data.y, data.angle, data.dmg, 'bullet'));
                 }
             });
             c.on('close', () => {
@@ -307,8 +309,8 @@ const Net = {
                             if(game) game.p.hp -= data.val; 
                         } else if(data.t === 'loot') { 
                             if(game) { 
-                                if(data.res === 'key') { game.hasKey = true; SFX.play('key'); }
-                                else { game.p.res[data.res]++; game.p.money+=15; game.p.xp+=5; game.score+=50; }
+                                if(data.type === 'key') { game.hasKey = true; SFX.play('key'); }
+                                else { game.p.res[data.type]++; game.p.money+=15; game.p.xp+=5; game.score+=50; }
                             } 
                         }
                     });
@@ -491,18 +493,37 @@ class Zombie {
 class Boss extends Zombie { constructor(x,y,w) { super(x,y,w); this.r=30; this.hp=500+w*100; this.maxHp=this.hp; this.spd=50+w*2; this.isBoss=true; } }
 
 class Projectile {
-    constructor(x,y,a,d,t) { this.x=x; this.y=y; this.a=a; this.d=d; this.t=t; this.act=true; this.timer=t==='gren'?1.5:0;}
-    update(dt, grid, gm) {
-        if(this.t==='gren') { this.timer-=dt; if(this.timer>0) { let nx=this.x+Math.cos(this.a)*400*dt, ny=this.y+Math.sin(this.a)*400*dt; if(!isWall(nx,ny,5,grid)){this.x=nx;this.y=ny;} } else if(this.act){gm.explode(this.x,this.y,180,300); this.act=false;} }
-        else { if(isNaN(this.a)){this.act=false;return;} this.x+=Math.cos(this.a)*1500*dt; this.y+=Math.sin(this.a)*1500*dt; if(isWall(this.x,this.y,2,grid)) this.act=false; }
+    constructor(x,y,angle,dmg,type) { 
+        this.x = x; this.y = y; this.angle = angle; this.dmg = dmg; this.type = type; 
+        this.active = true; this.timer = type === 'gren' ? 1.5 : 0;
     }
-    draw(cam) { ctx.fillStyle=this.t==='gren'?(this.timer%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(this.x-cam.x, this.y-cam.y, this.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); }
-}
-class Loot { 
-    constructor(x,y,t) { this.x=x+(Math.random()-0.5)*20; this.y=y+(Math.random()-0.5)*20; this.t=t; } 
+    update(dt, grid, gm) {
+        if(this.type === 'gren') {
+            this.timer -= dt; 
+            if(this.timer > 0) { 
+                let nx = this.x + Math.cos(this.angle) * 400 * dt;
+                let ny = this.y + Math.sin(this.angle) * 400 * dt; 
+                if(!isWall(nx, ny, 5, grid)) { this.x = nx; this.y = ny; } 
+            }
+            else if(this.active) { gm.explode(this.x, this.y, 180, 300); this.active = false; }
+        } else {
+            if (isNaN(this.angle)) { this.active = false; return; }
+            this.x += Math.cos(this.angle) * 1500 * dt; 
+            this.y += Math.sin(this.angle) * 1500 * dt; 
+            if(isWall(this.x, this.y, 2, grid)) this.active = false;
+        }
+    }
     draw(cam) { 
-        if (this.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
-        else { const c={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}; ctx.fillStyle=c[this.t]; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
+        ctx.fillStyle = this.type === 'gren' ? (this.timer % 0.2 < 0.1 ? '#f00' : '#0a0') : '#ff0'; 
+        ctx.beginPath(); ctx.arc(this.x - cam.x, this.y - cam.y, this.type === 'gren' ? 6 : 3, 0, Math.PI*2); ctx.fill(); 
+    }
+}
+
+class Loot { 
+    constructor(x,y,type) { this.x=x+(Math.random()-0.5)*20; this.y=y+(Math.random()-0.5)*20; this.type=type; } 
+    draw(cam) { 
+        if (this.type === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
+        else { const c={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}; ctx.fillStyle=c[this.type]; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
     } 
 }
 class Barricade { constructor(x, y) { this.x=x; this.y=y; this.hp=300; } draw(cam) { ctx.fillStyle='#8d6e63'; ctx.fillRect(this.x-cam.x-20, this.y-cam.y-10, 40, 20); } }
@@ -544,7 +565,6 @@ class GameManager {
             SFX.play('boom');
         }
 
-        // 50% šance na spawnutí klíče v této vlně (pokud ho už nemáme)
         if (!this.hasKey && Math.random() < 0.5 && this.z.length > 0) {
             let keyZomb = this.z[Math.floor(Math.random() * this.z.length)];
             keyZomb.hasKey = true;
@@ -615,9 +635,9 @@ class GameManager {
                     t:'state', 
                     hx:this.p.x, hy:this.p.y, ha:this.p.ang, hname: playerName,
                     cls: Net.clientsData, 
-                    z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,b:z.isBoss})), 
-                    p:this.proj.map(p=>({x:p.x,y:p.y,a:p.a,t:p.t,tm:p.timer})), 
-                    l:this.loot.map(l=>({x:l.x,y:l.y,t:l.t})), 
+                    z:this.z.map(z=>({x:z.x,y:z.y,ang:z.ang,hp:z.hp,maxHp:z.maxHp,isBoss:z.isBoss})), 
+                    p:this.proj.map(p=>({x:p.x,y:p.y,angle:p.angle,type:p.type,timer:p.timer})), 
+                    l:this.loot.map(l=>({x:l.x,y:l.y,type:l.type})), 
                     b:this.bars.map(b=>({x:b.x,y:b.y})), 
                     w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
                 });
@@ -625,8 +645,8 @@ class GameManager {
                 this.loot = this.loot.filter(l => { 
                     for (let id in Net.clientsData) {
                         if(getDist(Net.clientsData[id].x, Net.clientsData[id].y, l.x, l.y) < 25) { 
-                            if (l.t === 'key') this.hasKey = true;
-                            Net.sendTo(id, {t:'loot', res:l.t}); return false; 
+                            if (l.type === 'key') this.hasKey = true;
+                            Net.sendTo(id, {t:'loot', type:l.type}); return false; 
                         }
                     }
                     return true; 
@@ -659,7 +679,7 @@ class GameManager {
                     for(let i=0; i<w.p; i++) {
                         let a = this.p.ang+(Math.random()-0.5)*w.spread;
                         this.proj.push(new Projectile(this.p.x, this.p.y, a, w.dmg, 'bullet'));
-                        if (Net.active && !Net.isHost) Net.sendToHost({t:'shoot', x:this.p.x, y:this.p.y, ang:a, dmg:w.dmg});
+                        if (Net.active && !Net.isHost) Net.sendToHost({t:'shoot', x:this.p.x, y:this.p.y, angle:a, dmg:w.dmg});
                     }
                     w.ammo--; this.p.fireT = w.rate;
                 } else { this.p.fireT = 0.5; }
@@ -674,10 +694,10 @@ class GameManager {
         if(!Net.active || Net.isHost) {
             this.proj.forEach(pr => { 
                 pr.update(dt, this.map.grid, this); 
-                if(pr.t==='bullet' && pr.act) { 
+                if(pr.type==='bullet' && pr.active) { 
                     this.z.forEach(z=>{ 
                         if(getDist(pr.x, pr.y, z.x, z.y) < z.r) { 
-                            z.hp -= pr.d; pr.act = false; SFX.play('hit'); 
+                            z.hp -= pr.dmg; pr.active = false; SFX.play('hit'); 
                         } 
                     }); 
                 }
@@ -709,13 +729,13 @@ class GameManager {
 
             this.loot = this.loot.filter(l => { 
                 if(getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { 
-                    if (l.t === 'key') { this.hasKey = true; SFX.play('key'); }
-                    else { this.p.res[l.t]++; }
+                    if (l.type === 'key') { this.hasKey = true; SFX.play('key'); }
+                    else { this.p.res[l.type]++; }
                     return false; 
                 } 
                 return true; 
             });
-            this.proj = this.proj.filter(pr => pr.act); this.bars = this.bars.filter(b => b.hp > 0);
+            this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0);
         }
 
         if(this.shake > 0) { this.shake *= 0.9; if(this.shake < 0.5) this.shake = 0; }
@@ -760,18 +780,16 @@ class GameManager {
         
         if (Net.active && !Net.isHost && Net.hostData) { 
             Net.hostData.l.forEach(l=>{ 
-                if(l.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
-                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                if(l.type === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.type]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
             });
             Net.hostData.b.forEach(b=>{ ctx.fillStyle='#8d6e63'; ctx.fillRect(b.x-this.cam.x-20,b.y-this.cam.y-10,40,20); });
-            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
-            Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); ctx.fillStyle=z.h<z.mh/2?'#1f3d14':(z.b?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.b?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.b?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.b?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
+            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.type==='gren'?(p.timer%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.type==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
+            Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.ang); ctx.fillStyle=z.hp<z.maxHp/2?'#1f3d14':(z.isBoss?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.isBoss?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.isBoss?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.isBoss?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
             
-            // Nakresli Hosta
-            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.hang); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
             ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hname || "Host", Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
             
-            // Nakresli ostatní Klienty
             for (let id in Net.hostData.cls) {
                 if (id === Net.myId) continue; 
                 let c = Net.hostData.cls[id];
