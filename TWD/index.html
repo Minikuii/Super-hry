@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Bugfix & Co-op</title>
+    <title>TWD: Tower Survival - Ultimatum</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         canvas { background: #111; display: block; cursor: crosshair; }
 
-        /* HUD [online] */
         #hud { position: absolute; top: 15px; left: 15px; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10; display: none; }
         .bar-bg { width: 220px; height: 12px; background: #222; border: 2px solid #000; margin-bottom: 4px; position: relative; }
         .bar-fill { height: 100%; transition: width 0.1s; }
@@ -25,7 +24,6 @@
         #wave-ui { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; text-shadow: 2px 2px 4px black; z-index: 10; display: none; }
         #wave-text { color: #ff4d4d; margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; }
         
-        /* Obrazovky */
         .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
         h1 { color: #ff4d4d; font-size: 40px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
         .btn { background: #222; color: #fff; border: 2px solid #444; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: bold; margin: 6px; transition: 0.2s; text-transform: uppercase; }
@@ -45,7 +43,6 @@
         table { border-collapse: collapse; margin-bottom: 20px; width: 400px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; }
         th { background: #222; color: #ff4d4d; }
-
         .box { background: #111; border: 2px solid #333; padding: 20px; width: 300px; }
     </style>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
@@ -64,9 +61,9 @@
         <div id="key-ui">Klíč od patra: NE</div>
         <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
-        <div class="hud-text" id="grenade-ui" style="color:#ff9800;">Granáty: 0 | Barikády: 0</div>
+        <div class="hud-text" id="grenade-ui" style="color:#ff9800;">G: 0 | F: 0 | T: 0</div>
         <div id="resources-ui">Šrot: <span id="res-sc">0</span> | Látka: <span id="res-cl">0</span><br>Chem: <span id="res-ch">0</span> | Dřevo: <span id="res-wd">0</span></div>
-        <div style="margin-top: 10px; font-size: 12px; color: #666;">[B] Obchod | [C] Crafting<br>[E] Další patro</div>
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">[B] Obchod | [C] Craft<br>[E] Patro | [R] Oživit parťáka</div>
     </div>
 
     <div id="wave-ui">
@@ -124,15 +121,9 @@
         <div class="class-grid">
             <div class="class-card" onclick="UI.finalizeStart('soldier')"><h3>Voják</h3><p>+ Puška & Granát</p><p>+ 130 HP [online]</p></div>
             <div class="class-card" onclick="UI.finalizeStart('scavenger')"><h3>Průzkumník</h3><p>+ Pistole</p><p>+ Rychlost & Loot</p></div>
-            <div class="class-card" onclick="UI.finalizeStart('engineer')"><h3>Inženýr</h3><p>+ Brokovnice</p><p>+ Barikády</p></div>
-            <div class="class-card" onclick="UI.finalizeStart('medic')"><h3>Zdravotník</h3><p>+ Pistole</p><p>+ Bonus léčení</p></div>
+            <div class="class-card" onclick="UI.finalizeStart('engineer')"><h3>Inženýr</h3><p>+ Brokovnice</p><p>+ Start s Turretem</p></div>
+            <div class="class-card" onclick="UI.finalizeStart('medic')"><h3>Zdravotník</h3><p>+ Pistole</p><p>+ Rychlé léčení</p></div>
         </div>
-        <button class="btn" onclick="UI.startMenu()">Zpět</button>
-    </div>
-
-    <div id="leaderboard-screen" class="overlay-screen" style="display:none;">
-        <h1>SÍŇ SLÁVY</h1>
-        <table><thead><tr><th>#</th><th>Jméno</th><th>Skóre</th><th>Vlny</th></tr></thead><tbody id="lb-body"></tbody></table>
         <button class="btn" onclick="UI.startMenu()">Zpět</button>
     </div>
 
@@ -143,7 +134,7 @@
             <div class="menu-item"><h4>Lékárnička (+50 HP [online])</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
             <div class="menu-item"><h4>Munice (+30)</h4><p>$50</p><button class="btn" onclick="if(game)game.buy('ammo', 50)">Koupit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>$100</p><button class="btn" onclick="if(game)game.buy('grenade', 100)">Koupit</button></div>
-            <div class="menu-item"><h4>Barikáda (+1)</h4><p>$40</p><button class="btn" onclick="if(game)game.buy('barricade', 40)">Koupit</button></div>
+            <div class="menu-item"><h4>Turret (+1)</h4><p>$200</p><button class="btn" onclick="if(game)game.buy('turret', 200)">Koupit</button></div>
         </div>
         <button class="btn" onclick="UI.closeGameMenus()">Zavřít [B]</button>
     </div>
@@ -154,14 +145,20 @@
         <div class="menu-grid">
             <div class="menu-item"><h4>Obvaz (+30 HP [online])</h4><p>2x Látka</p><button class="btn" onclick="if(game)game.craft('heal')">Vyrobit</button></div>
             <div class="menu-item"><h4>Munice (+20)</h4><p>2x Šrot, 1x Chem</p><button class="btn" onclick="if(game)game.craft('ammo')">Vyrobit</button></div>
-            <div class="menu-item"><h4>Granát (+1)</h4><p>3x Šrot, 2x Chem</p><button class="btn" onclick="if(game)game.craft('grenade')">Vyrobit</button></div>
             <div class="menu-item"><h4>Barikáda (+1)</h4><p>4x Dřevo, 2x Šrot</p><button class="btn" onclick="if(game)game.craft('barricade')">Vyrobit</button></div>
+            <div class="menu-item"><h4>Turret (+1)</h4><p>5x Šrot, 3x Chem</p><button class="btn" onclick="if(game)game.craft('turret')">Vyrobit</button></div>
         </div>
         <button class="btn" onclick="UI.closeGameMenus()">Zavřít [C]</button>
     </div>
 
+    <div id="leaderboard-screen" class="overlay-screen" style="display:none;">
+        <h1>SÍŇ SLÁVY</h1>
+        <table><thead><tr><th>#</th><th>Jméno</th><th>Skóre</th><th>Vlny</th></tr></thead><tbody id="lb-body"></tbody></table>
+        <button class="btn" onclick="UI.startMenu()">Zpět</button>
+    </div>
+
     <div id="death-screen" class="overlay-screen" style="display:none;">
-        <h1 style="font-size: 60px;">ZEMŘEL JSI</h1>
+        <h1 style="font-size: 60px;">MRTVÍ (GAME OVER)</h1>
         <p id="death-stats" style="font-size: 20px; color: white;"></p>
         <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP [online]!</p>
         <button class="btn" onclick="UI.restartApp()">Zpět do Menu</button>
@@ -173,7 +170,6 @@
 </div>
 
 <script>
-// --- CORE SETUP ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -194,7 +190,6 @@ try {
     if(u && typeof u === 'object') { upgrades.hp = parseInt(u.hp)||0; upgrades.spd = parseInt(u.spd)||0; upgrades.gren = parseInt(u.gren)||0; }
 } catch(e) {}
 
-// --- AUDIO SFX [online] ---
 let actx = null;
 const SFX = {
     play(type) {
@@ -220,19 +215,18 @@ const WEAPONS = {
 };
 
 const CLASSES = {
-    'soldier': { hp: 130, spd: 210, wep: ['machete', 'rifle'], gren: 1, bar: 0, healMod: 1, lootMod: 1 },
-    'scavenger': { hp: 90, spd: 260, wep: ['machete', 'pistol'], gren: 0, bar: 0, healMod: 1, lootMod: 1.6 },
-    'engineer': { hp: 100, spd: 200, wep: ['machete', 'shotgun'], gren: 0, bar: 2, healMod: 1, lootMod: 1 },
-    'medic': { hp: 100, spd: 230, wep: ['machete', 'pistol'], gren: 0, bar: 0, healMod: 1.5, lootMod: 1 }
+    'soldier': { hp: 130, spd: 210, wep: ['machete', 'rifle'], gren: 1, bar: 0, tur: 0, healMod: 1, lootMod: 1 },
+    'scavenger': { hp: 90, spd: 260, wep: ['machete', 'pistol'], gren: 0, bar: 0, tur: 0, healMod: 1, lootMod: 1.6 },
+    'engineer': { hp: 100, spd: 200, wep: ['machete', 'shotgun'], gren: 0, bar: 0, tur: 1, healMod: 1, lootMod: 1 },
+    'medic': { hp: 100, spd: 230, wep: ['machete', 'pistol'], gren: 0, bar: 0, tur: 0, healMod: 1.5, lootMod: 1 }
 };
 
 const KEYS = {}; const MOUSE = { x: 0, y: 0, down: false, rDown: false };
 window.addEventListener('keydown', e => { 
     let k = e.key.toLowerCase(); KEYS[k] = true; 
     if(appState==='game' && game && game.active && !game.menuOpen) {
-        if(k==='g') game.throwGrenade(); 
-        if(k==='f') game.buildBarricade();
-        if(k==='e') game.useStairs(); 
+        if(k==='g') game.throwGrenade(); if(k==='f') game.buildBarricade(); if(k==='t') game.buildTurret();
+        if(k==='e') game.useStairs(); if(k==='r') game.reviveTeammate();
         if(k==='b' && game.inter) UI.toggleGameMenu('shop');
         if(k==='c') UI.toggleGameMenu('craft');
     }
@@ -253,40 +247,28 @@ function isWall(x, y, r, grid) {
     } return false;
 }
 
-// --- NETWORKING PRO VÍCE HRÁČŮ ---
 let peer = null;
 const Net = {
-    active: false, isHost: true, conns: {}, 
-    clientsData: {}, 
-    hostData: null, myId: null,
-    
+    active: false, isHost: true, conns: {}, clientsData: {}, hostData: null, myId: null,
     initHost() {
         peer = new Peer(Math.floor(1000+Math.random()*9000).toString());
         peer.on('open', id => { this.myId = id; document.getElementById('my-id').innerText = id; });
         peer.on('connection', c => {
-            this.active = true; this.isHost = true;
-            this.conns[c.peer] = c;
-            this.clientsData[c.peer] = { x: 400, y: 400, ang: 0, c: '#'+Math.floor(Math.random()*16777215).toString(16), name: "Připojování..." };
-            
+            this.active = true; this.isHost = true; this.conns[c.peer] = c;
+            this.clientsData[c.peer] = { x: 400, y: 400, ang: 0, c: '#'+Math.floor(Math.random()*16777215).toString(16), name: "Hráč", downed: false };
             document.getElementById('host-status').innerText = `Připojeno hráčů: ${Object.keys(this.conns).length}. Můžeš spustit hru.`;
             document.getElementById('btn-start-multi').style.display = 'block';
-
             c.on('data', data => {
                 if(data.t === 'input') {
                     if(this.clientsData[c.peer]) {
-                        this.clientsData[c.peer].x = data.x;
-                        this.clientsData[c.peer].y = data.y;
-                        this.clientsData[c.peer].ang = data.ang;
+                        this.clientsData[c.peer].x = data.x; this.clientsData[c.peer].y = data.y;
+                        this.clientsData[c.peer].ang = data.ang; this.clientsData[c.peer].downed = data.dwn;
                         if(data.name) this.clientsData[c.peer].name = data.name;
                     }
-                } else if(data.t === 'shoot') {
-                    if(game) game.proj.push(new Projectile(data.x, data.y, data.angle, data.dmg, 'bullet'));
-                }
+                } else if(data.t === 'shoot') { if(game) game.proj.push(new Projectile(data.x, data.y, data.angle, data.dmg, 'bullet')); }
+                else if(data.t === 'revive_req') { if(game && game.p.downed) { game.p.hp = game.p.maxHp * 0.3; game.p.downed = false; } }
             });
-            c.on('close', () => {
-                delete this.conns[c.peer]; delete this.clientsData[c.peer];
-                document.getElementById('host-status').innerText = `Připojeno hráčů: ${Object.keys(this.conns).length}.`;
-            });
+            c.on('close', () => { delete this.conns[c.peer]; delete this.clientsData[c.peer]; document.getElementById('host-status').innerText = `Připojeno hráčů: ${Object.keys(this.conns).length}.`; });
         });
     },
     joinGame() {
@@ -295,26 +277,16 @@ const Net = {
             document.getElementById('client-status').style.display = 'block';
             peer = new Peer();
             peer.on('open', id => {
-                this.myId = id;
-                let c = peer.connect(tid);
-                this.isHost = false; this.active = true;
+                this.myId = id; let c = peer.connect(tid); this.isHost = false; this.active = true;
                 c.on('open', () => {
                     this.conns['host'] = c;
                     document.getElementById('client-status').innerText = "Připojeno! Čekej na spuštění Hosta.";
                     c.on('data', data => {
-                        if(data.t === 'init_game') {
-                            appState = 'game'; UI.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block';
-                            game = new GameManager(selectedClass, data.map); 
-                        } else if(data.t === 'state') {
-                            this.hostData = data; 
-                        } else if(data.t === 'dmg') { 
-                            if(game) game.p.hp -= data.val; 
-                        } else if(data.t === 'loot') { 
-                            if(game) { 
-                                if(data.type === 'key') { game.hasKey = true; SFX.play('key'); }
-                                else { game.p.res[data.type]++; game.p.money+=15; game.p.xp+=5; game.score+=50; }
-                            } 
-                        }
+                        if(data.t === 'init_game') { appState = 'game'; UI.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block'; game = new GameManager(selectedClass, data.map); } 
+                        else if(data.t === 'state') { this.hostData = data; } 
+                        else if(data.t === 'dmg') { if(game && !game.p.downed) { game.p.hp -= data.val; if(game.p.hp <= 0) game.p.downed = true; } } 
+                        else if(data.t === 'loot') { if(game && !game.p.downed) { if(data.type === 'key') { game.hasKey = true; SFX.play('key'); } else { game.p.res[data.type]++; game.p.money+=15; game.p.xp+=5; game.score+=50; } } }
+                        else if(data.t === 'revive_req') { if(game && game.p.downed) { game.p.hp = game.p.maxHp * 0.3; game.p.downed = false; } }
                     });
                     c.on('close', () => { alert("Spojení s Hostem ztraceno!"); UI.restartApp(); });
                 });
@@ -331,7 +303,6 @@ const Net = {
     }
 };
 
-// --- UI [online] & EDITOR ---
 const UI = {
     show(id) { document.querySelectorAll('.overlay-screen').forEach(e=>e.style.display='none'); if(id) document.getElementById(id).style.display='flex'; },
     startMenu() { appState='menu'; document.getElementById('global-xp').innerText=globalXP; this.show('start-menu'); },
@@ -345,37 +316,24 @@ const UI = {
         document.getElementById('lb-body').innerHTML = h || '<tr><td colspan="4">Zatím žádná data</td></tr>';
     },
     finalizeStart(cls) {
-        selectedClass = cls;
-        playerName = document.getElementById('player-name').value || 'Přeživší';
-        if(gameMode === 'multi') {
-            this.show('network-ui');
-            Net.initHost();
-        } else {
-            appState = 'game'; this.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block';
-            game = new GameManager(cls, customEditorGrid ? { grid: customEditorGrid, startP: null, stairs: null } : null);
-            customEditorGrid = null;
-        }
+        selectedClass = cls; playerName = document.getElementById('player-name').value || 'Přeživší';
+        if(gameMode === 'multi') { this.show('network-ui'); Net.initHost(); } 
+        else { appState = 'game'; this.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block'; game = new GameManager(cls, customEditorGrid ? { grid: customEditorGrid, startP: null, stairs: null } : null); customEditorGrid = null; }
     },
     toggleGameMenu(type) {
-        if(!game) return; if(game.menuOpen===type){this.closeGameMenus();return;}
+        if(!game || game.p.downed) return; if(game.menuOpen===type){this.closeGameMenus();return;}
         game.menuOpen=type; this.show(type+'-screen');
         document.getElementById('shop-money').innerText=`Peníze: $${game.p.money}`; document.getElementById('craft-res').innerText=`Šrot:${game.p.res.sc} | Látka:${game.p.res.cl} | Chem:${game.p.res.ch} | Dřevo:${game.p.res.wd}`;
     },
     closeGameMenus() { this.show(''); if(game) game.menuOpen=null; },
     restartApp() {
-        document.getElementById('death-screen').style.display='none';
-        document.getElementById('hud').style.display='none';
-        document.getElementById('wave-ui').style.display='none';
-        if(peer) peer.destroy(); 
-        Net.active = false; Net.isHost = true; Net.conns = {}; Net.clientsData = {};
-        game = null; appState = 'menu';
-        this.startMenu();
+        document.getElementById('death-screen').style.display='none'; document.getElementById('hud').style.display='none'; document.getElementById('wave-ui').style.display='none';
+        if(peer) peer.destroy(); Net.active = false; Net.isHost = true; Net.conns = {}; Net.clientsData = {};
+        game = null; appState = 'menu'; this.startMenu();
     }
 };
 
-function buyUpgrade(t, c) {
-    if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP [online]!');
-}
+function buyUpgrade(t, c) { if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP [online]!'); }
 
 let edCam={x:0,y:0};
 function startEditor() {
@@ -401,7 +359,6 @@ function drawEditor() {
     ctx.restore();
 }
 
-// --- ENTITIES ---
 class GameMap {
     constructor(cGrid) {
         this.blood=[]; this.stairs={x:0,y:0};
@@ -437,12 +394,13 @@ class Player {
     constructor(pos, clsKey) {
         this.x=pos.x; this.y=pos.y; this.r=15; this.clsData=CLASSES[clsKey];
         this.hp=this.clsData.hp+(upgrades.hp*10); this.maxHp=this.hp; this.stam=100; this.spd=this.clsData.spd+(upgrades.spd*5);
-        this.money=0; this.xp=0; this.grenades=this.clsData.gren+upgrades.gren; this.barricades=this.clsData.bar;
+        this.money=0; this.xp=0; this.grenades=this.clsData.gren+upgrades.gren; this.barricades=this.clsData.bar; this.turrets=this.clsData.tur;
         this.res={sc:0,cl:0,ch:0,wd:0}; this.weps=this.clsData.wep.map(w=>({...WEAPONS[w]})); this.wIdx=this.weps.length>1?1:0;
-        this.ang=0; this.fireT=0;
+        this.ang=0; this.fireT=0; this.downed = false;
     }
     get wep() { return this.weps[this.wIdx]; }
     update(dt, grid) {
+        if (this.downed) return;
         if(KEYS['1']&&this.weps[0]) this.wIdx=0; if(KEYS['2']&&this.weps[1]) this.wIdx=1;
         let s = (KEYS['shift']&&this.stam>5) ? this.spd*1.5 : this.spd; let vx=0, vy=0;
         if(KEYS['w']) vy-=s; if(KEYS['s']) vy+=s; if(KEYS['a']) vx-=s; if(KEYS['d']) vx+=s;
@@ -456,23 +414,26 @@ class Player {
     }
     draw(cam, customColor) {
         ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang);
-        ctx.fillStyle=customColor || '#4a90e2'; ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = this.downed ? '#555' : (customColor || '#4a90e2'); 
+        ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
         ctx.fillStyle='#333'; ctx.fillRect(10,-3,this.wep? (this.wep.type==='melee'?30:20) : 20,6); ctx.restore();
-        
-        ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
-        ctx.fillText(playerName, this.x - cam.x, this.y - cam.y - 25);
+        ctx.fillStyle = this.downed ? '#f00' : '#fff'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(this.downed ? "POTŘEBUJE POMOC!" : playerName, this.x - cam.x, this.y - cam.y - 25);
     }
 }
 
 class Zombie {
-    constructor(x,y,w) { this.x=x; this.y=y; this.r=15; this.hp=50+w*15; this.maxHp=this.hp; this.spd=60+Math.random()*40+w*2; this.ang=0; this.isBoss = false; this.hasKey = false; }
-    update(dt, targets, mapGrid, bars) {
+    constructor(x,y,w, type='normal') { 
+        this.x=x; this.y=y; this.r=15; this.hp=50+w*15; this.spd=60+Math.random()*40+w*2; this.ang=0; this.type = type; this.hasKey = false; 
+        if(type==='runner') { this.spd *= 1.6; this.hp *= 0.5; this.color = '#8bc34a'; }
+        else if(type==='boomer') { this.spd *= 0.7; this.hp *= 1.5; this.r = 20; this.color = '#ffeb3b'; }
+        else if(type==='boss') { this.spd = 50+w*2; this.hp = 500+w*100; this.r = 30; this.color = '#550000'; }
+        else { this.color = '#2e5c1e'; }
+        this.maxHp = this.hp;
+    }
+    update(dt, targets, mapGrid, bars, turrets) {
         let closest = null, minD = Infinity;
-        targets.forEach(t => {
-            let d = getDist(this.x, this.y, t.x, t.y);
-            if(d < minD) { minD = d; closest = t; }
-        });
-
+        targets.forEach(t => { let d = getDist(this.x, this.y, t.x, t.y); if(d < minD) { minD = d; closest = t; } });
         if(closest && minD < 700) {
             this.ang = Math.atan2(closest.y-this.y, closest.x-this.x);
             let vx=Math.cos(this.ang)*this.spd, vy=Math.sin(this.ang)*this.spd;
@@ -480,64 +441,71 @@ class Zombie {
             let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, mapGrid)) this.y=ny;
             
             if(minD < this.r+15) { 
-                if(closest.id === 'host') { game.p.hp -= (this.isBoss?50:25)*dt; SFX.play('hit'); }
-                else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.isBoss?50:25)*dt});
+                if (this.type === 'boomer') { this.hp = 0; } // Boomer vybuchne při dotyku
+                else {
+                    if(closest.id === 'host') { game.p.hp -= (this.type==='boss'?50:25)*dt; SFX.play('hit'); }
+                    else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.type==='boss'?50:25)*dt});
+                }
             }
-            bars.forEach(b=>{if(getDist(this.x,this.y,b.x,b.y)<this.r+20){b.hp-=(this.isBoss?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
+            bars.forEach(b=>{if(getDist(this.x,this.y,b.x,b.y)<this.r+20){b.hp-=(this.type==='boss'?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
+            turrets.forEach(tu=>{if(getDist(this.x,this.y,tu.x,tu.y)<this.r+15){tu.hp-=(this.type==='boss'?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
         }
     }
     draw(cam) {
         ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang);
-        ctx.fillStyle=this.hp<this.maxHp/2?'#1f3d14':(this.isBoss?'#550000':'#2e5c1e'); 
+        ctx.fillStyle=this.hp<this.maxHp/2?'#1f3d14':this.color; 
         ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
         ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(this.r/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(this.r/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore();
     }
 }
-class Boss extends Zombie { constructor(x,y,w) { super(x,y,w); this.r=30; this.hp=500+w*100; this.maxHp=this.hp; this.spd=50+w*2; this.isBoss=true; } }
 
 class Projectile {
-    constructor(x,y,angle,dmg,type) { 
-        this.x = x; this.y = y; this.angle = angle; this.dmg = dmg; this.type = type; 
-        this.active = true; this.timer = type === 'gren' ? 1.5 : 0;
-    }
+    constructor(x,y,angle,dmg,type) { this.x=x; this.y=y; this.angle=angle; this.dmg=dmg; this.type=type; this.active=true; this.timer=type==='gren'?1.5:0;}
     update(dt, grid, gm) {
         if(this.type === 'gren') {
             this.timer -= dt; 
-            if(this.timer > 0) { 
-                let nx = this.x + Math.cos(this.angle) * 400 * dt;
-                let ny = this.y + Math.sin(this.angle) * 400 * dt; 
-                if(!isWall(nx, ny, 5, grid)) { this.x = nx; this.y = ny; } 
-            }
+            if(this.timer > 0) { let nx = this.x + Math.cos(this.angle) * 400 * dt; let ny = this.y + Math.sin(this.angle) * 400 * dt; if(!isWall(nx, ny, 5, grid)) { this.x = nx; this.y = ny; } }
             else if(this.active) { gm.explode(this.x, this.y, 180, 300); this.active = false; }
         } else {
             if (isNaN(this.angle)) { this.active = false; return; }
-            this.x += Math.cos(this.angle) * 1500 * dt; 
-            this.y += Math.sin(this.angle) * 1500 * dt; 
+            this.x += Math.cos(this.angle) * 1500 * dt; this.y += Math.sin(this.angle) * 1500 * dt; 
             if(isWall(this.x, this.y, 2, grid)) this.active = false;
         }
     }
-    draw(cam) { 
-        ctx.fillStyle = this.type === 'gren' ? (this.timer % 0.2 < 0.1 ? '#f00' : '#0a0') : '#ff0'; 
-        ctx.beginPath(); ctx.arc(this.x - cam.x, this.y - cam.y, this.type === 'gren' ? 6 : 3, 0, Math.PI*2); ctx.fill(); 
-    }
+    draw(cam) { ctx.fillStyle = this.type === 'gren' ? (this.timer % 0.2 < 0.1 ? '#f00' : '#0a0') : '#ff0'; ctx.beginPath(); ctx.arc(this.x - cam.x, this.y - cam.y, this.type === 'gren' ? 6 : 3, 0, Math.PI*2); ctx.fill(); }
 }
 
 class Loot { 
     constructor(x,y,type) { this.x=x+(Math.random()-0.5)*20; this.y=y+(Math.random()-0.5)*20; this.type=type; } 
     draw(cam) { 
         if (this.type === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
+        else if (this.type === 'drop') { ctx.fillStyle='#2196f3'; ctx.fillRect(this.x-cam.x-10, this.y-cam.y-10, 20, 20); ctx.fillStyle='#fff'; ctx.font='10px Arial'; ctx.fillText('+', this.x-cam.x, this.y-cam.y+3); }
         else { const c={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}; ctx.fillStyle=c[this.type]; ctx.fillRect(this.x-cam.x-6, this.y-cam.y-6, 12, 12); }
     } 
 }
 class Barricade { constructor(x, y) { this.x=x; this.y=y; this.hp=300; } draw(cam) { ctx.fillStyle='#8d6e63'; ctx.fillRect(this.x-cam.x-20, this.y-cam.y-10, 40, 20); } }
+class Turret { 
+    constructor(x,y) { this.x=x; this.y=y; this.hp=200; this.fireT=0; this.ang=0; } 
+    update(dt, zomb, proj, isHost) {
+        this.fireT -= dt;
+        if (isHost && this.fireT <= 0 && zomb.length > 0) {
+            let closest = null, minD = 400;
+            zomb.forEach(z => { let d = getDist(this.x, this.y, z.x, z.y); if(d < minD) { minD = d; closest = z; } });
+            if (closest) {
+                this.ang = Math.atan2(closest.y - this.y, closest.x - this.x);
+                proj.push(new Projectile(this.x, this.y, this.ang, 15, 'bullet'));
+                this.fireT = 0.3; SFX.play('shoot');
+            }
+        }
+    }
+    draw(cam) { ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang); ctx.fillStyle='#607d8b'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#111'; ctx.fillRect(0,-2,18,4); ctx.restore(); } 
+}
 
-// --- GAME MANAGER ---
 class GameManager {
     constructor(clsKey, cGrid) {
         this.map = new GameMap(cGrid); this.p = new Player(this.map.startP, clsKey);
-        this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.score=0; this.floor=1; this.wave=0; this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0;
+        this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.turrets=[]; this.score=0; this.floor=1; this.wave=0; this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0;
         this.hasKey = false;
-        
         let vw = canvas.width / CFG.ZOOM || 800; let vh = canvas.height / CFG.ZOOM || 600;
         this.cam = {x: this.p.x - vw/2, y: this.p.y - vh/2}; 
 
@@ -546,10 +514,7 @@ class GameManager {
 
     getValidSpawn(minDist) {
         let x, y, tries = 0;
-        do {
-            x = Math.random() * CFG.MAP_S * CFG.TS; y = Math.random() * CFG.MAP_S * CFG.TS; tries++;
-            if (tries > 50) minDist = 0; 
-        } while ((this.map.grid[Math.floor(y/CFG.TS)]?.[Math.floor(x/CFG.TS)] !== 0 || getDist(x, y, this.p.x, this.p.y) < minDist) && tries < 100);
+        do { x = Math.random() * CFG.MAP_S * CFG.TS; y = Math.random() * CFG.MAP_S * CFG.TS; tries++; if (tries > 50) minDist = 0; } while ((this.map.grid[Math.floor(y/CFG.TS)]?.[Math.floor(x/CFG.TS)] !== 0 || getDist(x, y, this.p.x, this.p.y) < minDist) && tries < 100);
         return { x, y };
     }
 
@@ -559,11 +524,14 @@ class GameManager {
         
         for(let i=0; i<5+this.wave*3; i++) {
             let pos = this.getValidSpawn(500);
-            this.z.push(new Zombie(pos.x, pos.y, this.wave));
+            let type = 'normal';
+            if (Math.random() < 0.2) type = 'runner';
+            if (Math.random() < 0.1) type = 'boomer';
+            this.z.push(new Zombie(pos.x, pos.y, this.wave, type));
         }
         if (this.wave % 5 === 0) {
             let pos = this.getValidSpawn(700);
-            this.z.push(new Boss(pos.x, pos.y, this.wave));
+            this.z.push(new Zombie(pos.x, pos.y, this.wave, 'boss'));
             document.getElementById('wave-text').innerText = `⚠ BOSS VLNA ${this.wave} ⚠`;
             SFX.play('boom');
         }
@@ -572,20 +540,22 @@ class GameManager {
             let keyZomb = this.z[Math.floor(Math.random() * this.z.length)];
             keyZomb.hasKey = true;
         }
+
+        // Airdrop
+        if (Math.random() < 0.3) {
+            let pos = this.getValidSpawn(200);
+            this.loot.push(new Loot(pos.x, pos.y, 'drop'));
+        }
     }
 
     explode(x,y,rad,dmg) {
-        SFX.play('boom'); this.shake = 20; 
-        this.map.addBlood(x,y);
-        
+        SFX.play('boom'); this.shake = 20; this.map.addBlood(x,y);
         if(!Net.active || Net.isHost) {
             this.z.forEach(z => { if(getDist(x,y,z.x,z.y)<rad) z.hp-=dmg; });
-            
-            if(getDist(x,y,this.p.x,this.p.y)<rad/2) this.p.hp-=dmg/3;
-            
+            if(getDist(x,y,this.p.x,this.p.y)<rad/2 && !this.p.downed) { this.p.hp-=dmg/3; if(this.p.hp<=0) this.p.downed = true; }
             if (Net.active && Net.isHost) {
                 for (let id in Net.clientsData) {
-                    if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2) {
+                    if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2 && !Net.clientsData[id].downed) {
                         Net.sendTo(id, {t:'dmg', val:dmg/3});
                     }
                 }
@@ -593,53 +563,57 @@ class GameManager {
         }
     }
 
-    throwGrenade() { 
-        if(this.p.grenades <= 0) return; // OPRAVA 
-        let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; 
-        this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); 
-        this.p.grenades--; 
-    }
+    throwGrenade() { if(this.p.grenades <= 0 || this.p.downed) return; let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); this.p.grenades--; }
+    buildBarricade() { if(this.p.barricades <= 0 || this.p.downed) return; let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; if(!isWall(bx,by,20,this.map.grid)) { this.bars.push(new Barricade(bx,by)); this.p.barricades--; } }
+    buildTurret() { if(this.p.turrets <= 0 || this.p.downed) return; let bx=this.p.x+Math.cos(this.p.ang)*40, by=this.p.y+Math.sin(this.p.ang)*40; if(!isWall(bx,by,15,this.map.grid)) { this.turrets.push(new Turret(bx,by)); this.p.turrets--; } }
     
-    buildBarricade() { 
-        if(this.p.barricades <= 0) return; // OPRAVA
-        let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; 
-        if(!isWall(bx,by,20,this.map.grid)) { 
-            this.bars.push(new Barricade(bx,by)); 
-            this.p.barricades--; 
-        } 
+    reviveTeammate() {
+        if(this.p.downed) return;
+        if(Net.active) {
+            if(Net.isHost) {
+                for (let id in Net.clientsData) {
+                    if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) {
+                        Net.sendTo(id, {t:'revive_req'});
+                    }
+                }
+            } else {
+                if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) {
+                    Net.sendToHost({t:'revive_req'});
+                }
+            }
+        }
     }
-    
+
     useStairs() { 
         if(!Net.active || Net.isHost) { 
-            if(getDist(this.p.x, this.p.y, this.map.stairs.x, this.map.stairs.y)<80) { 
+            if(getDist(this.p.x, this.p.y, this.map.stairs.x, this.map.stairs.y)<80 && !this.p.downed) { 
                 if (this.hasKey) {
-                    this.floor++; this.score+=100; this.map=new GameMap(); this.p.x=this.map.startP.x; this.p.y=this.map.startP.y; this.z=[]; this.inter=true; this.timer=5; 
-                    this.hasKey = false;
+                    this.floor++; this.score+=100; this.map=new GameMap(); this.p.x=this.map.startP.x; this.p.y=this.map.startP.y; this.z=[]; this.inter=true; this.timer=5; this.hasKey = false;
                     if(Net.active) Net.broadcast({t:'init_game', map:{grid:this.map.grid, startP:this.map.startP, stairs:this.map.stairs}}); 
-                } else {
-                    alert("K průchodu dveřmi potřebuješ najít ZLATÝ KLÍČ od Zombíka!");
-                }
+                } else alert("K průchodu dveřmi potřebuješ najít ZLATÝ KLÍČ od Zombíka!");
             } 
         } 
     }
 
     buy(t, c) {
-        if(this.p.money >= c) {
+        if(this.p.money >= c && !this.p.downed) {
             this.p.money -= c;
             if(t==='heal') this.p.hp=Math.min(this.p.maxHp, this.p.hp+50*this.p.clsData.healMod);
             if(t==='ammo') this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=30});
             if(t==='grenade') this.p.grenades++;
             if(t==='barricade') this.p.barricades++;
+            if(t==='turret') this.p.turrets++;
             UI.toggleGameMenu(this.menuOpen); 
-        } else { alert("Nemáš dost peněz!"); }
+        }
     }
     craft(t) {
+        if (this.p.downed) return;
         let r = this.p.res;
         if(t==='heal' && r.cl>=2) { r.cl-=2; this.p.hp=Math.min(this.p.maxHp, this.p.hp+30*this.p.clsData.healMod); }
         else if(t==='ammo' && r.sc>=2 && r.ch>=1) { r.sc-=2; r.ch--; this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=20}); }
         else if(t==='grenade' && r.sc>=3 && r.ch>=2) { r.sc-=3; r.ch-=2; this.p.grenades++; }
         else if(t==='barricade' && r.wd>=4 && r.sc>=2) { r.wd-=4; r.sc-=2; this.p.barricades++; }
-        else { alert("Nemáš dost surovin!"); }
+        else if(t==='turret' && r.sc>=5 && r.ch>=3) { r.sc-=5; r.ch-=3; this.p.turrets++; }
         UI.toggleGameMenu(this.menuOpen);
     }
 
@@ -649,19 +623,19 @@ class GameManager {
         if(Net.active) {
             if(Net.isHost) {
                 Net.broadcast({ 
-                    t:'state', 
-                    hx:this.p.x, hy:this.p.y, ha:this.p.ang, hname: playerName,
+                    t:'state', hx:this.p.x, hy:this.p.y, ha:this.p.ang, hname: playerName, hdwn: this.p.downed,
                     cls: Net.clientsData, 
-                    z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,b:z.isBoss})), 
-                    p:this.proj.map(p=>({x:p.x,y:p.y,a:p.angle,t:p.type,tm:p.timer})), 
-                    l:this.loot.map(l=>({x:l.x,y:l.y,t:l.type})), 
+                    z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,ty:z.type})), 
+                    p:this.proj.map(p=>({x:p.x,y:p.y,angle:p.angle,type:p.type,timer:p.timer})), 
+                    l:this.loot.map(l=>({x:l.x,y:l.y,type:l.type})), 
                     b:this.bars.map(b=>({x:b.x,y:b.y})), 
+                    tu:this.turrets.map(tu=>({x:tu.x,y:tu.y,a:tu.ang})),
                     w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
                 });
                 
                 this.loot = this.loot.filter(l => { 
                     for (let id in Net.clientsData) {
-                        if(getDist(Net.clientsData[id].x, Net.clientsData[id].y, l.x, l.y) < 25) { 
+                        if(getDist(Net.clientsData[id].x, Net.clientsData[id].y, l.x, l.y) < 25 && !Net.clientsData[id].downed) { 
                             if (l.type === 'key') this.hasKey = true;
                             Net.sendTo(id, {t:'loot', type:l.type}); return false; 
                         }
@@ -669,10 +643,10 @@ class GameManager {
                     return true; 
                 });
             } else {
-                Net.sendToHost({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang, name: playerName });
+                Net.sendToHost({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang, name: playerName, dwn: this.p.downed });
                 if(Net.hostData) {
                     this.wave = Net.hostData.w; this.timer = Net.hostData.tm; this.inter = Net.hostData.int;
-                    this.z = Net.hostData.z; this.proj = Net.hostData.p; this.loot = Net.hostData.l; this.bars = Net.hostData.b;
+                    this.z = Net.hostData.z; this.proj = Net.hostData.p; this.loot = Net.hostData.l; this.bars = Net.hostData.b; this.turrets = Net.hostData.tu;
                     this.hasKey = Net.hostData.hk;
                 }
             }
@@ -688,7 +662,7 @@ class GameManager {
 
         this.p.update(dt, this.map.grid);
 
-        if(MOUSE.down && this.p.fireT <= 0) {
+        if(MOUSE.down && this.p.fireT <= 0 && !this.p.downed) {
             let w = this.p.wep;
             if(w.type==='ranged') {
                 if(w.ammo>0) {
@@ -701,9 +675,7 @@ class GameManager {
                     w.ammo--; this.p.fireT = w.rate;
                 } else { this.p.fireT = 0.5; }
             } else if(w.type==='melee') {
-                if (!Net.active || Net.isHost) {
-                    this.z.forEach(z => { if(getDist(this.p.x, this.p.y, z.x, z.y) < w.range) { z.hp -= w.dmg; SFX.play('hit'); } });
-                }
+                if (!Net.active || Net.isHost) { this.z.forEach(z => { if(getDist(this.p.x, this.p.y, z.x, z.y) < w.range) { z.hp -= w.dmg; SFX.play('hit'); } }); }
                 this.p.fireT = w.rate;
             }
         }
@@ -711,32 +683,23 @@ class GameManager {
         if(!Net.active || Net.isHost) {
             this.proj.forEach(pr => { 
                 pr.update(dt, this.map.grid, this); 
-                if(pr.type==='bullet' && pr.active) { 
-                    this.z.forEach(z=>{ 
-                        if(getDist(pr.x, pr.y, z.x, z.y) < z.r) { 
-                            z.hp -= pr.dmg; pr.active = false; SFX.play('hit'); 
-                        } 
-                    }); 
-                }
+                if(pr.type==='bullet' && pr.active) { this.z.forEach(z=>{ if(getDist(pr.x, pr.y, z.x, z.y) < z.r) { z.hp -= pr.dmg; pr.active = false; SFX.play('hit'); } }); }
             });
             
-            let targets = [{ x: this.p.x, y: this.p.y, id: 'host' }];
-            if (Net.active) {
-                for (let id in Net.clientsData) {
-                    targets.push({ x: Net.clientsData[id].x, y: Net.clientsData[id].y, id: id });
-                }
-            }
+            let targets = [];
+            if (!this.p.downed) targets.push({ x: this.p.x, y: this.p.y, id: 'host' });
+            if (Net.active) { for (let id in Net.clientsData) { if(!Net.clientsData[id].downed) targets.push({ x: Net.clientsData[id].x, y: Net.clientsData[id].y, id: id }); } }
 
-            this.z.forEach(z => z.update(dt, targets, this.map.grid, this.bars));
+            this.z.forEach(z => z.update(dt, targets, this.map.grid, this.bars, this.turrets));
+            this.turrets.forEach(tu => tu.update(dt, this.z, this.proj, true));
 
             this.z = this.z.filter(z => {
                 if(z.hp <= 0) {
-                    this.p.money += z.isBoss ? 150 : 15; 
-                    this.p.xp += z.isBoss ? 50 : 5; 
-                    this.score += z.isBoss ? 500 : 50; 
+                    if (z.type === 'boomer') this.explode(z.x, z.y, 100, 100);
+                    this.p.money += z.type==='boss' ? 150 : 15; this.p.xp += z.type==='boss' ? 50 : 5; this.score += z.type==='boss' ? 500 : 50; 
                     this.map.addBlood(z.x, z.y);
-                    if(Math.random() < 0.5 * this.p.clsData.lootMod || z.isBoss) {
-                        let drops = z.isBoss ? 5 : 1;
+                    if(Math.random() < 0.5 * this.p.clsData.lootMod || z.type==='boss') {
+                        let drops = z.type==='boss' ? 5 : 1;
                         for(let i=0;i<drops;i++) this.loot.push(new Loot(z.x, z.y, ['sc','cl','ch','wd'][Math.floor(Math.random()*4)]));
                     }
                     if (z.hasKey) this.loot.push(new Loot(z.x, z.y, 'key'));
@@ -745,14 +708,16 @@ class GameManager {
             });
 
             this.loot = this.loot.filter(l => { 
-                if(getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { 
+                if(!this.p.downed && getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { 
                     if (l.type === 'key') { this.hasKey = true; SFX.play('key'); }
+                    else if (l.type === 'drop') { this.p.hp = this.p.maxHp; this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=50}); SFX.play('key'); }
                     else { this.p.res[l.type]++; }
                     return false; 
-                } 
-                return true; 
+                } return true; 
             });
-            this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0);
+            this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0); this.turrets = this.turrets.filter(tu => tu.hp > 0);
+        } else {
+            this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); // Jen vizuál pro klienta
         }
 
         if(this.shake > 0) { this.shake *= 0.9; if(this.shake < 0.5) this.shake = 0; }
@@ -761,28 +726,28 @@ class GameManager {
         this.cam.x += ((this.p.x - vw/2) - this.cam.x) * 5 * dt; 
         this.cam.y += ((this.p.y - vh/2) - this.cam.y) * 5 * dt;
 
-        document.getElementById('hp-bar').style.width = (this.p.hp/this.p.maxHp)*100+'%'; document.getElementById('stam-bar').style.width = this.p.stam+'%';
+        document.getElementById('hp-bar').style.width = Math.max(0, (this.p.hp/this.p.maxHp)*100)+'%'; document.getElementById('stam-bar').style.width = this.p.stam+'%';
         document.getElementById('money-ui').innerText = '$'+this.p.money; document.getElementById('xp-ui').innerText = 'XP [online]: '+this.p.xp;
         document.getElementById('weapon-ui').innerText = this.p.wep.name;
-        document.getElementById('ammo-ui').innerText = 'Munice: ' + (this.p.wep.ammo !== null ? this.p.wep.ammo : '∞'); document.getElementById('grenade-ui').innerText = `Granáty: ${this.p.grenades} (G) | Barikády: ${this.p.barricades} (F)`;
+        document.getElementById('ammo-ui').innerText = 'Munice: ' + (this.p.wep.ammo !== null ? this.p.wep.ammo : '∞'); 
+        document.getElementById('grenade-ui').innerText = `G: ${this.p.grenades} | F: ${this.p.barricades} | T: ${this.p.turrets}`;
         document.getElementById('floor-ui').innerText = 'Patro: ' + this.floor;
         document.getElementById('res-sc').innerText = this.p.res.sc; document.getElementById('res-cl').innerText = this.p.res.cl; document.getElementById('res-ch').innerText = this.p.res.ch; document.getElementById('res-wd').innerText = this.p.res.wd;
         document.getElementById('key-ui').innerText = 'Klíč od patra: ' + (this.hasKey ? 'MÁŠ' : 'NE');
         document.getElementById('key-ui').style.color = this.hasKey ? '#4caf50' : '#ffd700';
 
-        if(this.p.hp <= 0) {
-            this.active = false;
-            globalXP += this.p.xp; 
-            try {
-                localStorage.setItem('twd_xp', globalXP);
-                let lb = JSON.parse(localStorage.getItem('twd_lb')) || []; 
-                if(!Array.isArray(lb)) lb = [];
-                lb.push({ name: playerName, score: this.score, wave: this.wave }); 
-                localStorage.setItem('twd_lb', JSON.stringify(lb));
-            } catch(e){}
-            UI.show('death-screen'); 
-            document.getElementById('death-stats').innerText = `Skóre: ${this.score} | Patro: ${this.floor} | Vlny: ${this.wave}`;
-            document.getElementById('death-xp').innerText = this.p.xp;
+        if(this.p.hp <= 0 && !this.p.downed) this.p.downed = true;
+
+        // Kontrola Game Over (Všichni leží)
+        let allDown = this.p.downed;
+        if(Net.active) {
+            if(Net.isHost) { for(let id in Net.clientsData) { if(!Net.clientsData[id].downed) allDown = false; } }
+            else { if(Net.hostData && !Net.hostData.hdwn) allDown = false; }
+        }
+        if (allDown) {
+            this.active = false; globalXP += this.p.xp; 
+            try { localStorage.setItem('twd_xp', globalXP); let lb = JSON.parse(localStorage.getItem('twd_lb')) || []; if(!Array.isArray(lb)) lb = []; lb.push({ name: playerName, score: this.score, wave: this.wave }); localStorage.setItem('twd_lb', JSON.stringify(lb)); } catch(e){}
+            UI.show('death-screen'); document.getElementById('death-stats').innerText = `Skóre: ${this.score} | Patro: ${this.floor} | Vlny: ${this.wave}`; document.getElementById('death-xp').innerText = this.p.xp;
         }
     }
 
@@ -790,38 +755,43 @@ class GameManager {
         ctx.clearRect(0,0, canvas.width, canvas.height); ctx.save(); ctx.scale(CFG.ZOOM, CFG.ZOOM);
         let vw = canvas.width/CFG.ZOOM || 800, vh = canvas.height/CFG.ZOOM || 600;
         
-        let sxOffset = (Math.random()-0.5) * this.shake; let syOffset = (Math.random()-0.5) * this.shake;
-        ctx.translate(sxOffset, syOffset);
-
+        ctx.translate((Math.random()-0.5) * this.shake, (Math.random()-0.5) * this.shake);
         this.map.draw(this.cam, vw, vh);
         
         if (Net.active && !Net.isHost && Net.hostData) { 
             Net.hostData.l.forEach(l=>{ 
-                if(l.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
-                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                if(l.type === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                else if(l.type === 'drop') { ctx.fillStyle='#2196f3'; ctx.fillRect(l.x-this.cam.x-10, l.y-this.cam.y-10, 20, 20); }
+                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.type]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
             });
             Net.hostData.b.forEach(b=>{ ctx.fillStyle='#8d6e63'; ctx.fillRect(b.x-this.cam.x-20,b.y-this.cam.y-10,40,20); });
-            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
-            Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); ctx.fillStyle=z.h<z.mh/2?'#1f3d14':(z.b?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.b?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.b?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.b?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
+            Net.hostData.tu.forEach(tu=>{ ctx.save(); ctx.translate(tu.x-this.cam.x, tu.y-this.cam.y); ctx.rotate(tu.a); ctx.fillStyle='#607d8b'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#111'; ctx.fillRect(0,-2,18,4); ctx.restore(); });
+            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.type==='gren'?(p.timer%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.type==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
+            Net.hostData.z.forEach(z=>{ 
+                ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); 
+                if(z.ty==='runner') ctx.fillStyle='#8bc34a'; else if(z.ty==='boomer') ctx.fillStyle='#ffeb3b'; else if(z.ty==='boss') ctx.fillStyle='#550000'; else ctx.fillStyle='#2e5c1e';
+                if(z.h<z.mh/2) ctx.fillStyle='#1f3d14';
+                ctx.beginPath(); ctx.arc(0,0,z.ty==='boss'?30:(z.ty==='boomer'?20:15),0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(7,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(7,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); 
+            });
             
-            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-            ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hname || "Host", Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
+            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle=Net.hostData.hdwn?'#555':'#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+            ctx.fillStyle=Net.hostData.hdwn?'#f00':'#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hdwn?"POTŘEBUJE POMOC!":(Net.hostData.hname || "Host"), Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
             
             for (let id in Net.hostData.cls) {
                 if (id === Net.myId) continue; 
                 let c = Net.hostData.cls[id];
-                ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-                ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
+                ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.downed?'#555':c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+                ctx.fillStyle=c.downed?'#f00':'#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.downed?"POTŘEBUJE POMOC!":(c.name || "Hráč"), c.x-this.cam.x, c.y-this.cam.y - 25);
             }
         } else {
-            this.loot.forEach(l=>l.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam));
+            this.loot.forEach(l=>l.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam)); this.turrets.forEach(tu=>tu.draw(this.cam));
             this.proj.forEach(pr=>pr.draw(this.cam)); this.z.forEach(z=>z.draw(this.cam));
             
             if (Net.active && Net.isHost) {
                 for (let id in Net.clientsData) {
                     let c = Net.clientsData[id];
-                    ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-                    ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
+                    ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.downed?'#555':c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+                    ctx.fillStyle=c.downed?'#f00':'#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.downed?"POTŘEBUJE POMOC!":(c.name || "Hráč"), c.x-this.cam.x, c.y-this.cam.y - 25);
                 }
             }
         }
@@ -839,17 +809,9 @@ let lastT = performance.now();
 function mainLoop(t) {
     let dt = (t - lastT) / 1000; lastT = t; 
     if(dt < 0) dt = 0; if(dt > 0.1) dt = 0.1; 
-    
-    if(appState === 'game' && game && game.active) {
-        game.update(dt);
-        game.draw();
-    } else if(appState === 'editor') {
-        handleEditor(dt);
-        drawEditor();
-    }
+    if(appState === 'game' && game && game.active) { game.update(dt); game.draw(); } else if(appState === 'editor') { handleEditor(dt); drawEditor(); }
     requestAnimationFrame(mainLoop);
 }
-
 window.onload = () => { UI.startMenu(); requestAnimationFrame(mainLoop); };
 </script>
 </body>
