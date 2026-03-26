@@ -9,7 +9,6 @@
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         canvas { background: #111; display: block; cursor: crosshair; }
 
-        /* HUD */
         #hud { position: absolute; top: 15px; left: 15px; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10; display: none; }
         .bar-bg { width: 220px; height: 12px; background: #222; border: 2px solid #000; margin-bottom: 4px; position: relative; }
         .bar-fill { height: 100%; transition: width 0.1s; }
@@ -21,13 +20,13 @@
         #xp-ui { color: #9c27b0; font-size: 18px; }
         #key-ui { color: #ffd700; font-size: 18px; margin-top: 5px; font-weight: bold; }
         
-        #resources-ui { margin-top: 10px; font-size: 14px; color: #ddd; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 5px; border: 1px solid #333; }
+        #resources-ui { margin-top: 10px; font-size: 14px; color: #ddd; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; border: 1px solid #333; }
+        #controls-ui { margin-top: 10px; font-size: 12px; color: #888; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; }
 
         #wave-ui { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; text-shadow: 2px 2px 4px black; z-index: 10; display: none; }
         #wave-text { color: #ff4d4d; margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; }
         #time-ui { color: #fff; font-size: 18px; margin-top: 5px; }
         
-        /* Obrazovky */
         .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
         h1 { color: #ff4d4d; font-size: 40px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
         .btn { background: #222; color: #fff; border: 2px solid #444; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: bold; margin: 6px; transition: 0.2s; text-transform: uppercase; }
@@ -49,7 +48,6 @@
         th { background: #222; color: #ff4d4d; }
         .box { background: #111; border: 2px solid #333; padding: 20px; width: 300px; }
         
-        /* Perk & Overlay UI */
         #perk-ui { display: none; flex-direction: row; gap: 15px; z-index: 150; }
         #perk-screen .class-card { width: 250px; }
         #blood-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 50%, rgba(200,0,0,0.4) 100%); display:none; z-index: 5; }
@@ -69,14 +67,14 @@
         <div class="bar-bg" style="height: 6px;"><div id="lvl-bar" class="bar-fill"></div></div>
         <div class="hud-text" id="lvl-ui" style="color:#2196f3; font-size:12px;">Level 1</div>
         <div class="hud-text" id="money-ui">$0</div>
-        <div class="hud-text" id="xp-ui">XP: 0</div>
+        <div class="hud-text" id="xp-ui">XP [online]: 0</div>
         <div id="key-ui">Klíč od patra: NE</div>
         <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
         <div class="hud-text" id="grenade-ui" style="color:#ff9800;">G: 0 | M: 0 | FB: 0 | F: 0 | T: 0 | MIN: 0</div>
         <div id="resources-ui">Šrot: <span id="res-sc">0</span> | Látka: <span id="res-cl">0</span><br>Chem: <span id="res-ch">0</span> | Dřevo: <span id="res-wd">0</span></div>
-        <div style="margin-top: 10px; font-size: 12px; color: #666;">
-            [1-4] Zbraně | [B] Obchod | [C] Craft<br>[E] Patro/Akce | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
+        <div id="controls-ui">
+            [1-4] Zbraně | [B] Obchod | [C] Craft<br>[E] Patro/Automat | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
         </div>
     </div>
 
@@ -89,14 +87,14 @@
     <div id="start-menu" class="overlay-screen">
         <h1>TOWER OF DECAY</h1>
         <input type="text" id="player-name" placeholder="Přezdívka" maxlength="12" value="Přeživší">
-        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP: <span id="global-xp">0</span></div>
+        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP [online]: <span id="global-xp">0</span></div>
         <div>
             <button class="btn" onclick="UI.modeSelect('single')">Základní Hra</button>
             <button class="btn" style="border-color:#4caf50; color:#c8e6c9;" onclick="UI.modeSelect('multi')">CO-OP (LAN)</button>
         </div>
         <div style="margin-top: 10px;">
             <button class="btn" onclick="startEditor()">Editor Mapy</button>
-            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG</button>
+            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG [online]</button>
             <button class="btn" onclick="UI.leaderboard()">Žebříček</button>
         </div>
     </div>
@@ -123,12 +121,12 @@
 
     <div id="upgrade-screen" class="overlay-screen" style="display: none;">
         <h1 style="color:#9c27b0;">VÝZKUM A VYLEPŠENÍ</h1>
-        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP: <span id="upg-xp">0</span></div>
+        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP [online]: <span id="upg-xp">0</span></div>
         <div class="menu-grid">
-            <div class="menu-item"><h4>Zesílené zdraví (+10 HP)</h4><p>100 XP</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
-            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
+            <div class="menu-item"><h4>Zesílené zdraví (+10 HP)</h4><p>100 XP [online]</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
+            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP [online]</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP [online]</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP [online]</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
         </div>
         <button class="btn" onclick="UI.startMenu()">Zpět do Menu</button>
     </div>
@@ -195,7 +193,7 @@
     <div id="death-screen" class="overlay-screen" style="display:none;">
         <h1 style="font-size: 60px;">MRTVÍ (GAME OVER)</h1>
         <p id="death-stats" style="font-size: 20px; color: white;"></p>
-        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP!</p>
+        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP [online]!</p>
         <button class="btn" onclick="UI.restartApp()">Zpět do Menu</button>
     </div>
     
@@ -210,7 +208,6 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-// Fog Canvas (Pro stínování baterky a noci)
 const fogC = document.createElement('canvas');
 const fogCtx = fogC.getContext('2d');
 
@@ -422,7 +419,7 @@ const UI = {
     }
 };
 
-function buyUpgrade(t, c) { if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP!'); }
+function buyUpgrade(t, c) { if(globalXP>=c) { globalXP-=c; upgrades[t]++; try{localStorage.setItem('twd_xp',globalXP);localStorage.setItem('twd_upgrades',JSON.stringify(upgrades));}catch(e){} document.getElementById('upg-xp').innerText=globalXP; alert('Zakoupeno!'); } else alert('Málo XP [online]!'); }
 
 let edCam={x:0,y:0};
 function startEditor() {
@@ -496,12 +493,6 @@ class GameMap {
         ctx.fillStyle='#f1c40f'; ctx.fillRect(this.stairs.x-cam.x-20, this.stairs.y-cam.y-20, 40, 40);
         ctx.fillStyle='#000'; ctx.font='20px Arial'; ctx.fillText('E', this.stairs.x-cam.x-6, this.stairs.y-cam.y+6);
         
-        this.barrels.forEach(b => {
-            if(b.active) {
-                ctx.fillStyle='#d32f2f'; ctx.beginPath(); ctx.arc(b.x-cam.x, b.y-cam.y, 12, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(b.x-cam.x, b.y-cam.y, 8, 0, Math.PI*2); ctx.stroke();
-            }
-        });
         this.vends.forEach(v => {
             ctx.fillStyle='#00bcd4'; ctx.fillRect(v.x-cam.x-15, v.y-cam.y-20, 30, 40);
             ctx.fillStyle='#fff'; ctx.fillRect(v.x-cam.x-10, v.y-cam.y-15, 20, 15);
@@ -537,7 +528,6 @@ class Player {
     get wep() { return this.weps[this.wIdx]; }
     update(dt, grid) {
         if (this.downed) return;
-        if(KEYS['1']&&this.weps[0]) this.wIdx=0; if(KEYS['2']&&this.weps[1]) this.wIdx=1; if(KEYS['3']&&this.weps[2]) this.wIdx=2; if(KEYS['4']&&this.weps[3]) this.wIdx=3;
         
         let vx=0, vy=0;
         if(KEYS['w']) vy-=1; if(KEYS['s']) vy+=1; if(KEYS['a']) vx-=1; if(KEYS['d']) vx+=1;
@@ -583,11 +573,11 @@ class Zombie {
         else if(type==='stalker') { this.spd *= 1.4; this.hp *= 0.8; this.color = 'rgba(20,20,20,0.4)'; }
         else if(type==='charger') { this.spd *= 0.9; this.hp *= 1.8; this.color = '#9c27b0'; this.r = 22; }
         else if(type==='dog') { this.spd *= 2.2; this.hp *= 0.2; this.color = '#795548'; this.r = 10; }
-        else if(type==='swat') { this.spd *= 0.8; this.hp *= 1.5; this.color = '#1565c0'; }
+        else if(type==='swat') { this.spd *= 0.8; this.hp *= 1.5; this.color = '#1565c0'; } 
         else { this.color = '#2e5c1e'; }
         this.maxHp = this.hp;
     }
-    update(dt, targets, mapGrid, bars, turrets) {
+    update(dt, targets, mapGrid, bars, turrets, projArray) {
         if(this.stun > 0) { this.stun -= dt; return; }
         let closest = null, minD = Infinity;
         targets.forEach(t => { let d = getDist(this.x, this.y, t.x, t.y); if(d < minD) { minD = d; closest = t; } });
@@ -600,7 +590,7 @@ class Zombie {
                 if (minD < 300 && minD > 100) { vx *= 0.1; vy *= 0.1; }
                 this.fireT -= dt;
                 if (this.fireT <= 0 && minD < 400 && (!Net.active || Net.isHost)) {
-                    game.proj.push(new Projectile(this.x, this.y, this.ang, 10 + game.wave*2, 'acid_spit'));
+                    projArray.push(new Projectile(this.x, this.y, this.ang, 10 + game.wave*2, 'acid_spit'));
                     SFX.play('acid'); this.fireT = 2.5;
                 }
             } else if (this.type === 'charger') {
@@ -614,7 +604,7 @@ class Zombie {
             let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, mapGrid)) this.y=ny; else if(this.charging) this.charging = false;
             
             if(minD < this.r+15) { 
-                if (this.type === 'boomer') { this.hp = 0; }
+                if (this.type === 'boomer') { this.hp = 0; } 
                 else if (this.type !== 'spitter') {
                     if(closest.id === 'host') { game.p.hp -= (this.type==='boss'?50:(this.charging?40:25))*dt; SFX.play('hit'); }
                     else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.type==='boss'?50:(this.charging?40:25))*dt});
@@ -747,11 +737,7 @@ class Turret {
         if (isHost && this.fireT <= 0 && zomb.length > 0) {
             let closest = null, minD = 400;
             zomb.forEach(z => { let d = getDist(this.x, this.y, z.x, z.y); if(d < minD) { minD = d; closest = z; } });
-            if (closest) {
-                this.ang = Math.atan2(closest.y - this.y, closest.x - this.x);
-                proj.push(new Projectile(this.x, this.y, this.ang, 15, 'bullet'));
-                this.fireT = 0.3; SFX.play('shoot');
-            }
+            if (closest) { this.ang = Math.atan2(closest.y - this.y, closest.x - this.x); proj.push(new Projectile(this.x, this.y, this.ang, 15, 'bullet')); this.fireT = 0.3; SFX.play('shoot'); }
         }
     }
     draw(cam) { ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang); ctx.fillStyle='#607d8b'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#111'; ctx.fillRect(0,-2,18,4); ctx.restore(); } 
@@ -797,19 +783,12 @@ class GameManager {
 
     startWave() {
         if(this.isShop) {
-            this.inter = false;
-            document.getElementById('wave-text').innerText = `BEZPEČNÁ ZÓNA (PATRO ${this.floor})`;
-            document.getElementById('wave-text').style.color = '#00bcd4';
-            return;
+            this.inter = false; document.getElementById('wave-text').innerText = `BEZPEČNÁ ZÓNA (PATRO ${this.floor})`; document.getElementById('wave-text').style.color = '#00bcd4'; return;
         }
         
-        this.wave++; this.inter = false;
-        document.getElementById('wave-text').style.color = '#ff4d4d';
+        this.wave++; this.inter = false; document.getElementById('wave-text').style.color = '#ff4d4d';
         
-        if (this.wave > 1 && this.wave % 5 === 1) {
-            UI.showPerks();
-            if(Net.active && Net.isHost) Net.broadcast({t:'perk_time'});
-        }
+        if (this.wave > 1 && this.wave % 5 === 1) { UI.showPerks(); if(Net.active && Net.isHost) Net.broadcast({t:'perk_time'}); }
 
         let isHorde = Math.random() < 0.1 && this.wave > 3;
         if(isHorde) document.getElementById('wave-text').innerText = `⚠ HORDA SE BLÍŽÍ (VLNA ${this.wave}) ⚠`;
@@ -818,39 +797,23 @@ class GameManager {
         let count = isHorde ? (15 + this.wave*4) : (5 + this.wave*3);
         
         for(let i=0; i<count; i++) {
-            let pos = this.getValidSpawn(500);
-            let type = isHorde ? 'horde' : 'normal';
+            let pos = this.getValidSpawn(500); let type = isHorde ? 'horde' : 'normal';
             if(!isHorde) {
                 let r = Math.random();
-                if (r < 0.15) type = 'runner';
-                else if (r < 0.25) type = 'spitter';
-                else if (r < 0.30) type = 'stalker';
-                else if (r < 0.40) type = 'armored';
-                else if (r < 0.45) type = 'boomer';
-                else if (r < 0.50) type = 'charger';
-                else if (r < 0.60) type = 'dog';
-                else if (r < 0.65) type = 'swat';
+                if (r < 0.15) type = 'runner'; else if (r < 0.25) type = 'spitter'; else if (r < 0.30) type = 'stalker'; else if (r < 0.40) type = 'armored';
+                else if (r < 0.45) type = 'boomer'; else if (r < 0.50) type = 'charger'; else if (r < 0.60) type = 'dog'; else if (r < 0.65) type = 'swat';
             }
             let nz = new Zombie(pos.x, pos.y, this.wave, type);
             if(this.isNight) nz.spd *= 1.3; this.z.push(nz);
         }
         if (this.wave % 5 === 0) {
-            let pos = this.getValidSpawn(700);
-            let bz = new Zombie(pos.x, pos.y, this.wave, 'boss');
+            let pos = this.getValidSpawn(700); let bz = new Zombie(pos.x, pos.y, this.wave, 'boss');
             if(this.isNight) bz.spd *= 1.3; this.z.push(bz);
-            document.getElementById('wave-text').innerText = `⚠ BOSS VLNA ${this.wave} ⚠`;
-            SFX.play('boom');
+            document.getElementById('wave-text').innerText = `⚠ BOSS VLNA ${this.wave} ⚠`; SFX.play('boom');
         }
 
-        if (!this.hasKey && Math.random() < 0.5 && this.z.length > 0) {
-            let keyZomb = this.z[Math.floor(Math.random() * this.z.length)];
-            keyZomb.hasKey = true;
-        }
-
-        if (Math.random() < 0.3) {
-            let pos = this.getValidSpawn(200);
-            this.loot.push(new Loot(pos.x, pos.y, 'drop'));
-        }
+        if (!this.hasKey && Math.random() < 0.5 && this.z.length > 0) { this.z[Math.floor(Math.random() * this.z.length)].hasKey = true; }
+        if (Math.random() < 0.3) { let pos = this.getValidSpawn(200); this.loot.push(new Loot(pos.x, pos.y, 'drop')); }
     }
 
     explode(x,y,rad,dmg) {
@@ -858,8 +821,7 @@ class GameManager {
         if(!Net.active || Net.isHost) {
             this.z.forEach(z => { 
                 if(getDist(x,y,z.x,z.y)<rad) {
-                    let d = z.type === 'armored' ? dmg*1.5 : dmg; 
-                    z.hp -= d; 
+                    let d = z.type === 'armored' ? dmg*1.5 : dmg; z.hp -= d; 
                     this.ft.push(new FloatingText(z.x, z.y, Math.floor(d), '#ff0'));
                     if (Net.isHost) Net.broadcast({t:'dmg_num', x:z.x, y:z.y, txt:Math.floor(d), col:'#ff0'});
                 } 
@@ -867,9 +829,7 @@ class GameManager {
             if(getDist(x,y,this.p.x,this.p.y)<rad/2 && !this.p.downed) { this.p.hp-=dmg/3; if(this.p.hp<=0) this.p.downed = true; }
             if (Net.active && Net.isHost) {
                 for (let id in Net.clientsData) {
-                    if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2 && !Net.clientsData[id].downed) {
-                        Net.sendTo(id, {t:'dmg', val:dmg/3});
-                    }
+                    if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2 && !Net.clientsData[id].downed) { Net.sendTo(id, {t:'dmg', val:dmg/3}); }
                 }
             }
             this.barrels.forEach(b => {
@@ -895,11 +855,9 @@ class GameManager {
         if(this.p.downed) return;
         if(Net.active) {
             if(Net.isHost) {
-                for (let id in Net.clientsData) {
-                    if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) { Net.sendTo(id, {t:'revive_req'}); }
-                }
+                for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) Net.sendTo(id, {t:'revive_req'}); }
             } else {
-                if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) { Net.sendToHost({t:'revive_req'}); }
+                if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) Net.sendToHost({t:'revive_req'});
             }
         }
     }
@@ -910,46 +868,30 @@ class GameManager {
                 if (this.hasKey) {
                     let carryData = { floor: this.floor+1, hp: this.p.hp, maxHp: this.p.maxHp, stam: this.p.stam, money: this.p.money, xp: this.p.xp, gameXp: this.p.gameXp, lvl: this.p.lvl, nextLvl: this.p.nextLvl, grenades: this.p.grenades, molotovs: this.p.molotovs, flashbangs: this.p.flashbangs, barricades: this.p.barricades, turrets: this.p.turrets, mines: this.p.mines, res: this.p.res, weps: this.p.weps, dmgMult: this.p.dmgMult, vampirism: this.p.vampirism, spd: this.p.spd, pierce: this.p.perkPierce, score: this.score+100, wave: this.wave, isNight: this.isNight, dayTimer: this.dayTimer };
                     game = new GameManager(selectedClass, null, carryData);
-                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, barrels:game.barrels, vends:game.map.vends}, carry: carryData}); 
+                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, barrels:game.map.barrels, vends:game.map.vends}, carry: carryData}); 
                 } else alert("K průchodu dveřmi potřebuješ najít ZLATÝ KLÍČ od Zombíka!");
             } 
         } 
     }
     
-    useVending() {
-        if(!this.p.downed && this.map.isShopFloor) {
-            for(let v of this.map.vends) {
-                if(getDist(this.p.x, this.p.y, v.x, v.y) < 60) { UI.toggleGameMenu('shop'); break; }
-            }
-        }
-    }
+    useVending() { if(!this.p.downed && this.map.isShopFloor) { for(let v of this.map.vends) { if(getDist(this.p.x, this.p.y, v.x, v.y) < 60) { UI.toggleGameMenu('shop'); break; } } } }
 
     buy(t, c) {
         if(this.p.money >= c && !this.p.downed) {
             this.p.money -= c;
             if(t==='heal') this.p.hp=Math.min(this.p.maxHp, this.p.hp+50*this.p.clsData.healMod);
             if(t==='ammo') this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=30});
-            if(t==='grenade') this.p.grenades++;
-            if(t==='molotov') this.p.molotovs++;
-            if(t==='flashbang') this.p.flashbangs++;
-            if(t==='barricade') this.p.barricades++;
-            if(t==='turret') this.p.turrets++;
-            if(t==='mine') this.p.mines++;
+            if(t==='grenade') this.p.grenades++; if(t==='molotov') this.p.molotovs++; if(t==='flashbang') this.p.flashbangs++; if(t==='barricade') this.p.barricades++; if(t==='turret') this.p.turrets++; if(t==='mine') this.p.mines++;
             UI.toggleGameMenu(this.menuOpen); 
         }
     }
     buyWep(w, c) {
         if(this.p.money >= c && !this.p.downed) {
-            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) {
-                this.p.money -= c; this.p.weps.push({...WEAPONS[w]});
-                alert(`Zakoupeno: ${WEAPONS[w].name}. Přepínej klávesami 1-${this.p.weps.length}`);
-                UI.toggleGameMenu(this.menuOpen);
-            } else alert("Tuto zbraň už máš!"); 
+            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) { this.p.money -= c; this.p.weps.push({...WEAPONS[w]}); alert(`Zakoupeno: ${WEAPONS[w].name}.`); UI.toggleGameMenu(this.menuOpen); } else alert("Tuto zbraň už máš!"); 
         }
     }
     craft(t) {
-        if (this.p.downed) return;
-        let r = this.p.res;
+        if (this.p.downed) return; let r = this.p.res;
         if(t==='heal' && r.cl>=2) { r.cl-=2; this.p.hp=Math.min(this.p.maxHp, this.p.hp+30*this.p.clsData.healMod); }
         else if(t==='ammo' && r.sc>=2 && r.ch>=1) { r.sc-=2; r.ch--; this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=20}); }
         else if(t==='grenade' && r.sc>=3 && r.ch>=2) { r.sc-=3; r.ch-=2; this.p.grenades++; }
@@ -962,23 +904,16 @@ class GameManager {
 
     addGameXp(amount) {
         this.p.gameXp += amount; this.p.xp += amount;
-        if(this.p.gameXp >= this.p.nextLvl) {
-            this.p.gameXp -= this.p.nextLvl; this.p.lvl++; this.p.nextLvl += 50;
-            UI.showPerks();
-        }
+        if(this.p.gameXp >= this.p.nextLvl) { this.p.gameXp -= this.p.nextLvl; this.p.lvl++; this.p.nextLvl += 50; UI.showPerks(); }
     }
 
     update(dt) {
         if(this.menuOpen || this.perkScreenOpen) return;
-
         this.ft.forEach(f => f.update(dt)); this.ft = this.ft.filter(f => f.life > 0);
 
         if (!Net.active || Net.isHost) {
             this.dayTimer -= dt;
-            if(this.dayTimer <= 0) {
-                this.isNight = !this.isNight; this.dayTimer = this.isNight ? 30 : 60;
-                this.z.forEach(z => { z.spd *= this.isNight ? 1.3 : 0.77; });
-            }
+            if(this.dayTimer <= 0) { this.isNight = !this.isNight; this.dayTimer = this.isNight ? 30 : 60; this.z.forEach(z => { z.spd *= this.isNight ? 1.3 : 0.77; }); }
         }
 
         if(Net.active) {
@@ -993,7 +928,7 @@ class GameManager {
                     tu:this.turrets.map(tu=>({x:tu.x,y:tu.y,a:tu.ang})),
                     f:this.fires.map(f=>({x:f.x,y:f.y,l:f.life})),
                     m:this.mines_arr.map(m=>({x:m.x,y:m.y})),
-                    br:this.barrels.map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
+                    br:this.barrels.filter(br=>br.active).map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
                     ac:this.acids.map(a=>({x:a.x, y:a.y, tm:a.timer})),
                     w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
                 });
@@ -1004,17 +939,16 @@ class GameManager {
                             if (l.type === 'key') this.hasKey = true;
                             Net.sendTo(id, {t:'loot', type:l.type}); return false; 
                         }
-                    }
-                    return true; 
+                    } return true; 
                 });
             } else {
                 Net.sendToHost({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang, name: playerName, dwn: this.p.downed });
                 if(Net.hostData) {
                     this.wave = Net.hostData.w; this.timer = Net.hostData.tm; this.inter = Net.hostData.int;
                     this.z = Net.hostData.z || []; this.proj = Net.hostData.p || []; this.loot = Net.hostData.l || []; this.bars = Net.hostData.b || []; this.turrets = Net.hostData.tu || [];
-                    this.hasKey = Net.hostData.hk; this.fires = Net.hostData.f || []; this.mines_arr = Net.hostData.m || [];
+                    this.hasKey = Net.hostData.hk; this.isNight = Net.hostData.nt; this.dayTimer = Net.hostData.ntm;
+                    this.fires = Net.hostData.f || []; this.mines_arr = Net.hostData.m || [];
                     this.barrels = Net.hostData.br || []; this.acids = Net.hostData.ac || [];
-                    this.isNight = Net.hostData.nt; this.dayTimer = Net.hostData.ntm;
                 }
             }
         }
@@ -1038,15 +972,12 @@ class GameManager {
             let w = this.p.wep;
             if(w.type==='ranged' || w.type.includes('pierce')) {
                 if(w.ammo>0) {
-                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper');
-                    else if(w.type==='ranged_pierce') SFX.play('crossbow');
-                    else SFX.play('shoot'); 
+                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper'); else if(w.type==='ranged_pierce') SFX.play('crossbow'); else SFX.play('shoot'); 
                     this.shake = w.type.includes('pierce') ? 5 : 3; 
                     for(let i=0; i<w.p; i++) {
                         let a = this.p.ang+(Math.random()-0.5)*w.spread;
                         let pr = new Projectile(this.p.x, this.p.y, a, w.dmg * this.p.dmgMult, w.type.includes('pierce')?'ranged_pierce':'bullet');
-                        pr.pierce = this.p.perkPierce || 0;
-                        this.proj.push(pr);
+                        pr.pierce = this.p.perkPierce || 0; this.proj.push(pr);
                         if (Net.active && !Net.isHost) Net.sendToHost({t:'shoot', x:this.p.x, y:this.p.y, angle:a, dmg:w.dmg * this.p.dmgMult, type:w.type.includes('pierce')?'ranged_pierce':'bullet', pierce: pr.pierce});
                     }
                     w.ammo--; this.p.fireT = w.rate;
@@ -1091,10 +1022,7 @@ class GameManager {
                 if((pr.type==='bullet' || pr.type==='flame' || pr.type.includes('pierce')) && pr.active) { 
                     this.z.forEach(z=>{ 
                         if(pr.active && getDist(pr.x, pr.y, z.x, z.y) < z.r && !pr.hitZ.includes(z)) { 
-                            // SWAT Shield Block
-                            if (z.type === 'swat') {
-                                if (Math.cos(pr.angle - z.ang) < -0.3) { pr.active = false; SFX.play('hit'); return; } // Blocked
-                            }
+                            if (z.type === 'swat' && Math.cos(pr.angle - z.ang) < -0.3) { pr.active = false; SFX.play('hit'); return; }
                             let d = z.type === 'armored' && pr.type==='bullet' ? pr.dmg*0.3 : pr.dmg;
                             z.hp -= d; pr.hitZ.push(z); if(pr.type==='bullet') pr.active = false; SFX.play('hit'); 
                             if(Math.random()<0.5 || pr.type==='bullet') {
@@ -1108,15 +1036,10 @@ class GameManager {
                 }
                 
                 if(pr.type === 'acid_spit' && pr.active) {
-                    if (getDist(pr.x, pr.y, this.p.x, this.p.y) < this.p.r) {
-                        this.p.hp -= pr.dmg; pr.active = false; SFX.play('hit');
-                        if(this.p.hp <= 0) this.p.downed = true;
-                    }
+                    if (getDist(pr.x, pr.y, this.p.x, this.p.y) < this.p.r) { this.p.hp -= pr.dmg; pr.active = false; SFX.play('hit'); if(this.p.hp <= 0) this.p.downed = true; }
                     if (Net.active && Net.isHost) {
                         for(let id in Net.clientsData) {
-                            if (getDist(pr.x, pr.y, Net.clientsData[id].x, Net.clientsData[id].y) < 15 && !Net.clientsData[id].downed) {
-                                Net.sendTo(id, {t:'dmg', val:pr.dmg}); pr.active = false;
-                            }
+                            if (getDist(pr.x, pr.y, Net.clientsData[id].x, Net.clientsData[id].y) < 15 && !Net.clientsData[id].downed) { Net.sendTo(id, {t:'dmg', val:pr.dmg}); pr.active = false; }
                         }
                     }
                 }
@@ -1134,12 +1057,10 @@ class GameManager {
             this.z = this.z.filter(z => {
                 if(z.hp <= 0) {
                     if (z.type === 'boomer') this.explode(z.x, z.y, 100, 100);
-                    
                     if(this.p.perks.vamp > 0) { this.p.hp=Math.min(this.p.maxHp, this.p.hp+1); }
 
                     this.p.money += z.type==='boss' ? 150 : 15; this.score += z.type==='boss' ? 500 : 50; 
                     this.addGameXp(z.type==='boss' ? 50 : 5);
-
                     this.map.addBlood(z.x, z.y);
                     if(Math.random() < 0.5 * this.p.clsData.lootMod || z.type==='boss') {
                         let drops = z.type==='boss' ? 5 : 1;
@@ -1154,16 +1075,13 @@ class GameManager {
                 if(!this.p.downed && getDist(this.p.x, this.p.y, l.x, l.y) < this.p.r+15) { 
                     if (l.type === 'key') { this.hasKey = true; SFX.play('key'); this.ft.push(new FloatingText(this.p.x, this.p.y-20, "+ ZLATÝ KLÍČ", '#ffd700')); }
                     else if (l.type === 'drop') { this.p.hp = this.p.maxHp; this.p.weps.forEach(w=>{if(w.ammo!==null)w.ammo+=50}); SFX.play('key'); this.ft.push(new FloatingText(this.p.x, this.p.y-20, "DOPLNĚNO", '#2196f3')); }
-                    else { 
-                        this.p.res[l.type]++; 
-                        let names = {sc:'Šrot', cl:'Látka', ch:'Chem', wd:'Dřevo'};
-                        this.ft.push(new FloatingText(this.p.x, this.p.y-20, "+1 " + names[l.type], '#0f0'));
-                    }
+                    else { this.p.res[l.type]++; let names = {sc:'Šrot', cl:'Látka', ch:'Chem', wd:'Dřevo'}; this.ft.push(new FloatingText(this.p.x, this.p.y-20, "+1 " + names[l.type], '#0f0')); }
                     return false; 
                 } return true; 
             });
             this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0); this.turrets = this.turrets.filter(tu => tu.hp > 0);
             this.barrels = this.barrels.filter(br => br.active); this.acids = this.acids.filter(a => a.timer > 0);
+            this.fires = this.fires.filter(f => f.life > 0); this.mines_arr = this.mines_arr.filter(m => m.active);
         } else {
             this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); 
         }
@@ -1178,7 +1096,7 @@ class GameManager {
         document.getElementById('lvl-bar').style.width = (this.p.gameXp / this.p.nextLvl) * 100 + '%';
         document.getElementById('lvl-ui').innerText = `Level ${this.p.lvl}`;
         
-        document.getElementById('money-ui').innerText = '$'+this.p.money; document.getElementById('xp-ui').innerText = 'XP: '+this.p.xp;
+        document.getElementById('money-ui').innerText = '$'+this.p.money; document.getElementById('xp-ui').innerText = 'XP [online]: '+this.p.xp;
         document.getElementById('weapon-ui').innerText = this.p.wep.name;
         document.getElementById('ammo-ui').innerText = 'Munice: ' + (this.p.wep.ammo !== null ? this.p.wep.ammo : '∞'); 
         document.getElementById('grenade-ui').innerText = `G: ${this.p.grenades} | M: ${this.p.molotovs} | FB: ${this.p.flashbangs} | F: ${this.p.barricades} | T: ${this.p.turrets} | MIN: ${this.p.mines}`;
