@@ -9,7 +9,6 @@
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         canvas { background: #111; display: block; cursor: crosshair; }
 
-        /* HUD [online] */
         #hud { position: absolute; top: 15px; left: 15px; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10; display: none; }
         .bar-bg { width: 220px; height: 12px; background: #222; border: 2px solid #000; margin-bottom: 4px; position: relative; }
         .bar-fill { height: 100%; transition: width 0.1s; }
@@ -28,7 +27,6 @@
         #wave-text { color: #ff4d4d; margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; }
         #time-ui { color: #fff; font-size: 18px; margin-top: 5px; }
         
-        /* Obrazovky */
         .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
         h1 { color: #ff4d4d; font-size: 40px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
         .btn { background: #222; color: #fff; border: 2px solid #444; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: bold; margin: 6px; transition: 0.2s; text-transform: uppercase; }
@@ -50,7 +48,6 @@
         th { background: #222; color: #ff4d4d; }
         .box { background: #111; border: 2px solid #333; padding: 20px; width: 300px; }
         
-        /* Perk & Overlay UI [online] */
         #perk-ui { display: none; flex-direction: row; gap: 15px; z-index: 150; }
         #perk-screen .class-card { width: 250px; }
         #blood-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 50%, rgba(200,0,0,0.4) 100%); display:none; z-index: 5; }
@@ -70,7 +67,7 @@
         <div class="bar-bg" style="height: 6px;"><div id="lvl-bar" class="bar-fill"></div></div>
         <div class="hud-text" id="lvl-ui" style="color:#2196f3; font-size:12px;">Level 1</div>
         <div class="hud-text" id="money-ui">$0</div>
-        <div class="hud-text" id="xp-ui">XP [online]: 0</div>
+        <div class="hud-text" id="xp-ui">XP: 0</div>
         <div id="key-ui">Klíč od patra: NE</div>
         <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
@@ -90,14 +87,14 @@
     <div id="start-menu" class="overlay-screen">
         <h1>TOWER OF DECAY</h1>
         <input type="text" id="player-name" placeholder="Přezdívka" maxlength="12" value="Přeživší">
-        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP [online]: <span id="global-xp">0</span></div>
+        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP: <span id="global-xp">0</span></div>
         <div>
             <button class="btn" onclick="UI.modeSelect('single')">Základní Hra</button>
-            <button class="btn" style="border-color:#4caf50; color:#c8e6c9;" onclick="UI.modeSelect('multi')">CO-OP [online] (LAN [online])</button>
+            <button class="btn" style="border-color:#4caf50; color:#c8e6c9;" onclick="UI.modeSelect('multi')">CO-OP (LAN)</button>
         </div>
         <div style="margin-top: 10px;">
             <button class="btn" onclick="startEditor()">Editor Mapy</button>
-            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG [online]</button>
+            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG</button>
             <button class="btn" onclick="UI.leaderboard()">Žebříček</button>
         </div>
     </div>
@@ -124,13 +121,13 @@
 
     <div id="upgrade-screen" class="overlay-screen" style="display: none;">
         <h1 style="color:#9c27b0;">VÝZKUM A VYLEPŠENÍ</h1>
-        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP [online]: <span id="upg-xp">0</span></div>
+        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP: <span id="upg-xp">0</span></div>
         <div class="menu-grid">
-            <div class="menu-item"><h4>Zesílené zdraví (+10 HP [online])</h4><p>100 XP [online]</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
-            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP [online]</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP [online]</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP [online]</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Molotov (+1)</h4><p>250 XP [online]</p><button class="btn" onclick="buyUpgrade('molo', 250)">Koupit</button></div>
+            <div class="menu-item"><h4>Zesílené zdraví (+10 HP)</h4><p>100 XP</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
+            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Molotov (+1)</h4><p>250 XP</p><button class="btn" onclick="buyUpgrade('molo', 250)">Koupit</button></div>
         </div>
         <button class="btn" onclick="UI.startMenu()">Zpět do Menu</button>
     </div>
@@ -138,7 +135,7 @@
     <div id="class-screen" class="overlay-screen" style="display: none;">
         <h1>VÝBĚR TŘÍDY</h1>
         <div class="class-grid">
-            <div class="class-card" onclick="UI.finalizeStart('soldier')"><h3>Voják</h3><p>+ Puška & Granát</p><p>+ 130 HP [online]</p></div>
+            <div class="class-card" onclick="UI.finalizeStart('soldier')"><h3>Voják</h3><p>+ Puška & Granát</p><p>+ 130 HP</p></div>
             <div class="class-card" onclick="UI.finalizeStart('scavenger')"><h3>Průzkumník</h3><p>+ Pistole & Kuše</p><p>+ Rychlost & Loot</p></div>
             <div class="class-card" onclick="UI.finalizeStart('engineer')"><h3>Inženýr</h3><p>+ Brokovnice</p><p>+ Start s Turretem</p></div>
             <div class="class-card" onclick="UI.finalizeStart('medic')"><h3>Zdravotník</h3><p>+ Pistole</p><p>+ Rychlé léčení</p></div>
@@ -152,7 +149,7 @@
         <h1 style="color:#4caf50;">OBCHOD (B)</h1>
         <p id="shop-money" style="color:#ffd700; font-size: 20px;"></p>
         <div class="menu-grid" style="grid-template-columns: 1fr 1fr 1fr; max-width: 900px; height: 60vh; overflow-y: auto; padding: 10px;">
-            <div class="menu-item"><h4>Lékárnička (+50 HP [online])</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
+            <div class="menu-item"><h4>Lékárnička (+50 HP)</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
             <div class="menu-item"><h4>Munice (+30)</h4><p>$50</p><button class="btn" onclick="if(game)game.buy('ammo', 50)">Koupit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>$100</p><button class="btn" onclick="if(game)game.buy('grenade', 100)">Koupit</button></div>
             <div class="menu-item"><h4>Flashbang (+1)</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('flashbang', 80)">Koupit</button></div>
@@ -172,7 +169,7 @@
         <h1 style="color:#00bcd4;">CRAFTING (C)</h1>
         <p id="craft-res" style="color:#ddd; font-size: 16px;"></p>
         <div class="menu-grid">
-            <div class="menu-item"><h4>Obvaz (+30 HP [online])</h4><p>2x Látka</p><button class="btn" onclick="if(game)game.craft('heal')">Vyrobit</button></div>
+            <div class="menu-item"><h4>Obvaz (+30 HP)</h4><p>2x Látka</p><button class="btn" onclick="if(game)game.craft('heal')">Vyrobit</button></div>
             <div class="menu-item"><h4>Munice (+20)</h4><p>2x Šrot, 1x Chem</p><button class="btn" onclick="if(game)game.craft('ammo')">Vyrobit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>3x Šrot, 2x Chem</p><button class="btn" onclick="if(game)game.craft('grenade')">Vyrobit</button></div>
             <div class="menu-item"><h4>Molotov (+1)</h4><p>2x Chem, 1x Látka</p><button class="btn" onclick="if(game)game.craft('molotov')">Vyrobit</button></div>
@@ -198,12 +195,8 @@
     <div id="death-screen" class="overlay-screen" style="display:none;">
         <h1 style="font-size: 60px;">MRTVÍ (GAME OVER)</h1>
         <p id="death-stats" style="font-size: 20px; color: white;"></p>
-        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP [online]!</p>
+        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP!</p>
         <button class="btn" onclick="UI.restartApp()">Zpět do Menu</button>
-    </div>
-    
-    <div id="editor-ui" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid #00bcd4; display: none; text-align: center; color: #00bcd4; font-weight: bold; z-index: 10; border-radius: 10px;">
-        REŽIM EDITORU<br><span style="font-size: 12px; color: #ccc;">[L. Tlačítko] Zeď | [P. Tlačítko] Podlaha<br>Zmáčkni <b>[ENTER]</b> pro spuštění mapy!</span>
     </div>
 </div>
 
@@ -213,7 +206,6 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-// Fog Canvas pro správné vykreslení světla
 const fogC = document.createElement('canvas');
 const fogCtx = fogC.getContext('2d');
 
@@ -280,8 +272,8 @@ const CLASSES = {
 const PERKS = [
     { id: 'dmg', name: 'Zvýšené poškození', desc: '+20% poškození zbraní', fn: p => p.dmgMult += 0.2 },
     { id: 'spd', name: 'Rychlejší nohy', desc: '+15% rychlost', fn: p => p.spd *= 1.15 },
-    { id: 'hp', name: 'Železná kůže', desc: '+50 Max HP [online]', fn: p => { p.maxHp += 50; p.hp += 50; } },
-    { id: 'vamp', name: 'Vampýrismus', desc: '+1 HP [online] za zabití nepřítele', fn: p => p.vampirism = true },
+    { id: 'hp', name: 'Železná kůže', desc: '+50 Max HP', fn: p => { p.maxHp += 50; p.hp += 50; } },
+    { id: 'vamp', name: 'Vampýrismus', desc: '+1 HP za zabití nepřítele', fn: p => p.vampirism = true },
     { id: 'loot', name: 'Sběrač', desc: '+30% šance na drop', fn: p => p.clsData.lootMod *= 1.3 },
     { id: 'pierce', name: 'Průrazné střely', desc: 'Kulky projdou skrz 1 nepřítele', fn: p => p.perkPierce += 1 }
 ];
@@ -870,11 +862,8 @@ class GameManager {
     reviveTeammate() {
         if(this.p.downed) return;
         if(Net.active) {
-            if(Net.isHost) {
-                for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) { Net.sendTo(id, {t:'revive_req'}); } }
-            } else {
-                if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) { Net.sendToHost({t:'revive_req'}); }
-            }
+            if(Net.isHost) { for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) Net.sendTo(id, {t:'revive_req'}); } } 
+            else { if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) Net.sendToHost({t:'revive_req'}); }
         }
     }
 
@@ -988,7 +977,9 @@ class GameManager {
             let w = this.p.wep;
             if(w.type==='ranged' || w.type.includes('pierce')) {
                 if(w.ammo>0) {
-                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper'); else if(w.type==='ranged_pierce') SFX.play('crossbow'); else SFX.play('shoot'); 
+                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper');
+                    else if(w.type==='ranged_pierce') SFX.play('crossbow');
+                    else SFX.play('shoot'); 
                     this.shake = w.type.includes('pierce') ? 5 : 3; 
                     for(let i=0; i<w.p; i++) {
                         let a = this.p.ang+(Math.random()-0.5)*w.spread;
