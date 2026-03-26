@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Ultimatum</title>
+    <title>TWD: Tower Survival - Arsenal Update</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         canvas { background: #111; display: block; cursor: crosshair; }
 
+        /* HUD [online] */
         #hud { position: absolute; top: 15px; left: 15px; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10; display: none; }
         .bar-bg { width: 220px; height: 12px; background: #222; border: 2px solid #000; margin-bottom: 4px; position: relative; }
         .bar-fill { height: 100%; transition: width 0.1s; }
@@ -24,6 +25,7 @@
         #wave-ui { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; text-shadow: 2px 2px 4px black; z-index: 10; display: none; }
         #wave-text { color: #ff4d4d; margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; }
         
+        /* Obrazovky */
         .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
         h1 { color: #ff4d4d; font-size: 40px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
         .btn { background: #222; color: #fff; border: 2px solid #444; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: bold; margin: 6px; transition: 0.2s; text-transform: uppercase; }
@@ -127,14 +129,19 @@
         <button class="btn" onclick="UI.startMenu()">Zpět</button>
     </div>
 
-    <div id="shop-screen" class="overlay-screen" style="display:none;">
+    <div id="shop-screen" class="overlay-screen" style="display:none; padding-top: 40px;">
         <h1 style="color:#4caf50;">OBCHOD (B)</h1>
         <p id="shop-money" style="color:#ffd700; font-size: 20px;"></p>
-        <div class="menu-grid">
+        <div class="menu-grid" style="grid-template-columns: 1fr 1fr 1fr; max-width: 900px; height: 60vh; overflow-y: auto; padding: 10px;">
             <div class="menu-item"><h4>Lékárnička (+50 HP [online])</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
             <div class="menu-item"><h4>Munice (+30)</h4><p>$50</p><button class="btn" onclick="if(game)game.buy('ammo', 50)">Koupit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>$100</p><button class="btn" onclick="if(game)game.buy('grenade', 100)">Koupit</button></div>
+            <div class="menu-item"><h4>Barikáda (+1)</h4><p>$40</p><button class="btn" onclick="if(game)game.buy('barricade', 40)">Koupit</button></div>
             <div class="menu-item"><h4>Turret (+1)</h4><p>$200</p><button class="btn" onclick="if(game)game.buy('turret', 200)">Koupit</button></div>
+            <div class="menu-item"><h4>Katana</h4><p>$300</p><button class="btn" onclick="if(game)game.buyWep('katana', 300)">Koupit</button></div>
+            <div class="menu-item"><h4>UZI Samopal</h4><p>$400</p><button class="btn" onclick="if(game)game.buyWep('uzi', 400)">Koupit</button></div>
+            <div class="menu-item"><h4>Odstřelovač</h4><p>$600</p><button class="btn" onclick="if(game)game.buyWep('sniper', 600)">Koupit</button></div>
+            <div class="menu-item"><h4>Minigun</h4><p>$1000</p><button class="btn" onclick="if(game)game.buyWep('minigun', 1000)">Koupit</button></div>
         </div>
         <button class="btn" onclick="UI.closeGameMenus()">Zavřít [B]</button>
     </div>
@@ -209,9 +216,13 @@ const SFX = {
 
 const WEAPONS = {
     'machete': { name: 'Mačeta', type: 'melee', dmg: 60, rate: 0.4, range: 75, ammo: null },
+    'katana': { name: 'Katana', type: 'melee', dmg: 100, rate: 0.3, range: 90, ammo: null },
     'pistol': { name: 'Pistole', type: 'ranged', dmg: 35, rate: 0.3, ammo: 40, spread: 0.05, p: 1 },
     'shotgun': { name: 'Brokovnice', type: 'ranged', dmg: 25, rate: 0.8, ammo: 15, spread: 0.25, p: 6 },
-    'rifle': { name: 'Puška M4', type: 'ranged', dmg: 22, rate: 0.12, ammo: 90, spread: 0.08, p: 1 }
+    'rifle': { name: 'Puška M4', type: 'ranged', dmg: 22, rate: 0.12, ammo: 90, spread: 0.08, p: 1 },
+    'uzi': { name: 'UZI Samopal', type: 'ranged', dmg: 15, rate: 0.08, ammo: 150, spread: 0.18, p: 1 },
+    'sniper': { name: 'Odstřelovač', type: 'ranged', dmg: 180, rate: 1.5, ammo: 15, spread: 0.01, p: 1 },
+    'minigun': { name: 'Minigun', type: 'ranged', dmg: 20, rate: 0.05, ammo: 400, spread: 0.12, p: 1 }
 };
 
 const CLASSES = {
@@ -224,6 +235,12 @@ const CLASSES = {
 const KEYS = {}; const MOUSE = { x: 0, y: 0, down: false, rDown: false };
 window.addEventListener('keydown', e => { 
     let k = e.key.toLowerCase(); KEYS[k] = true; 
+    
+    let num = parseInt(k);
+    if (game && !isNaN(num) && num > 0 && num <= game.p.weps.length) {
+        game.p.wIdx = num - 1;
+    }
+
     if(appState==='game' && game && game.active && !game.menuOpen) {
         if(k==='g') game.throwGrenade(); if(k==='f') game.buildBarricade(); if(k==='t') game.buildTurret();
         if(k==='e') game.useStairs(); if(k==='r') game.reviveTeammate();
@@ -401,7 +418,6 @@ class Player {
     get wep() { return this.weps[this.wIdx]; }
     update(dt, grid) {
         if (this.downed) return;
-        if(KEYS['1']&&this.weps[0]) this.wIdx=0; if(KEYS['2']&&this.weps[1]) this.wIdx=1;
         let s = (KEYS['shift']&&this.stam>5) ? this.spd*1.5 : this.spd; let vx=0, vy=0;
         if(KEYS['w']) vy-=s; if(KEYS['s']) vy+=s; if(KEYS['a']) vx-=s; if(KEYS['d']) vx+=s;
         if(vx&&vy) { vx*=0.707; vy*=0.707; }
@@ -441,7 +457,7 @@ class Zombie {
             let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, mapGrid)) this.y=ny;
             
             if(minD < this.r+15) { 
-                if (this.type === 'boomer') { this.hp = 0; } // Boomer vybuchne při dotyku
+                if (this.type === 'boomer') { this.hp = 0; } 
                 else {
                     if(closest.id === 'host') { game.p.hp -= (this.type==='boss'?50:25)*dt; SFX.play('hit'); }
                     else if(Net.isHost) Net.sendTo(closest.id, {t:'dmg', val:(this.type==='boss'?50:25)*dt});
@@ -541,7 +557,6 @@ class GameManager {
             keyZomb.hasKey = true;
         }
 
-        // Airdrop
         if (Math.random() < 0.3) {
             let pos = this.getValidSpawn(200);
             this.loot.push(new Loot(pos.x, pos.y, 'drop'));
@@ -563,9 +578,24 @@ class GameManager {
         }
     }
 
-    throwGrenade() { if(this.p.grenades <= 0 || this.p.downed) return; let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); this.p.grenades--; }
-    buildBarricade() { if(this.p.barricades <= 0 || this.p.downed) return; let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; if(!isWall(bx,by,20,this.map.grid)) { this.bars.push(new Barricade(bx,by)); this.p.barricades--; } }
-    buildTurret() { if(this.p.turrets <= 0 || this.p.downed) return; let bx=this.p.x+Math.cos(this.p.ang)*40, by=this.p.y+Math.sin(this.p.ang)*40; if(!isWall(bx,by,15,this.map.grid)) { this.turrets.push(new Turret(bx,by)); this.p.turrets--; } }
+    throwGrenade() { 
+        if(this.p.grenades <= 0 || this.p.downed) return; 
+        let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; 
+        this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); 
+        this.p.grenades--; 
+    }
+    
+    buildBarricade() { 
+        if(this.p.barricades <= 0 || this.p.downed) return; 
+        let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; 
+        if(!isWall(bx,by,20,this.map.grid)) { this.bars.push(new Barricade(bx,by)); this.p.barricades--; } 
+    }
+    
+    buildTurret() { 
+        if(this.p.turrets <= 0 || this.p.downed) return; 
+        let bx=this.p.x+Math.cos(this.p.ang)*40, by=this.p.y+Math.sin(this.p.ang)*40; 
+        if(!isWall(bx,by,15,this.map.grid)) { this.turrets.push(new Turret(bx,by)); this.p.turrets--; } 
+    }
     
     reviveTeammate() {
         if(this.p.downed) return;
@@ -606,6 +636,18 @@ class GameManager {
             UI.toggleGameMenu(this.menuOpen); 
         }
     }
+    
+    buyWep(w, c) {
+        if(this.p.money >= c && !this.p.downed) {
+            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) {
+                this.p.money -= c;
+                this.p.weps.push({...WEAPONS[w]});
+                alert(`Zakoupeno: ${WEAPONS[w].name}. Přepínej klávesami 1-${this.p.weps.length}`);
+                UI.toggleGameMenu(this.menuOpen);
+            } else { alert("Tuto zbraň už máš!"); }
+        }
+    }
+
     craft(t) {
         if (this.p.downed) return;
         let r = this.p.res;
@@ -717,7 +759,7 @@ class GameManager {
             });
             this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0); this.turrets = this.turrets.filter(tu => tu.hp > 0);
         } else {
-            this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); // Jen vizuál pro klienta
+            this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); 
         }
 
         if(this.shake > 0) { this.shake *= 0.9; if(this.shake < 0.5) this.shake = 0; }
@@ -738,7 +780,6 @@ class GameManager {
 
         if(this.p.hp <= 0 && !this.p.downed) this.p.downed = true;
 
-        // Kontrola Game Over (Všichni leží)
         let allDown = this.p.downed;
         if(Net.active) {
             if(Net.isHost) { for(let id in Net.clientsData) { if(!Net.clientsData[id].downed) allDown = false; } }
