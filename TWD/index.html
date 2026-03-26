@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Bulletproof Co-op</title>
+    <title>TWD: Tower Survival - Bugfix & Co-op</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -230,8 +230,10 @@ const KEYS = {}; const MOUSE = { x: 0, y: 0, down: false, rDown: false };
 window.addEventListener('keydown', e => { 
     let k = e.key.toLowerCase(); KEYS[k] = true; 
     if(appState==='game' && game && game.active && !game.menuOpen) {
-        if(k==='g') game.throwGrenade(); if(k==='f') game.buildBarricade();
-        if(k==='e') game.useStairs(); if(k==='b' && game.inter) UI.toggleGameMenu('shop');
+        if(k==='g') game.throwGrenade(); 
+        if(k==='f') game.buildBarricade();
+        if(k==='e') game.useStairs(); 
+        if(k==='b' && game.inter) UI.toggleGameMenu('shop');
         if(k==='c') UI.toggleGameMenu('craft');
     }
     if(appState==='editor' && e.key==='Enter') { appState='menu'; document.getElementById('editor-ui').style.display='none'; gameMode='single'; UI.classSelect(); }
@@ -251,7 +253,7 @@ function isWall(x, y, r, grid) {
     } return false;
 }
 
-// --- NETWORKING PRO VÍCE HRÁČŮ (Host + N Klientů) ---
+// --- NETWORKING PRO VÍCE HRÁČŮ ---
 let peer = null;
 const Net = {
     active: false, isHost: true, conns: {}, 
@@ -441,6 +443,7 @@ class Player {
     }
     get wep() { return this.weps[this.wIdx]; }
     update(dt, grid) {
+        if(KEYS['1']&&this.weps[0]) this.wIdx=0; if(KEYS['2']&&this.weps[1]) this.wIdx=1;
         let s = (KEYS['shift']&&this.stam>5) ? this.spd*1.5 : this.spd; let vx=0, vy=0;
         if(KEYS['w']) vy-=s; if(KEYS['s']) vy+=s; if(KEYS['a']) vx-=s; if(KEYS['d']) vx+=s;
         if(vx&&vy) { vx*=0.707; vy*=0.707; }
@@ -590,8 +593,22 @@ class GameManager {
         }
     }
 
-    throwGrenade() { let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); this.p.grenades--; }
-    buildBarricade() { let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; if(!isWall(bx,by,20,this.map.grid)) { this.bars.push(new Barricade(bx,by)); this.p.barricades--; } }
+    throwGrenade() { 
+        if(this.p.grenades <= 0) return; // OPRAVA 
+        let tx=this.p.x+(MOUSE.x-canvas.width/2)/CFG.ZOOM, ty=this.p.y+(MOUSE.y-canvas.height/2)/CFG.ZOOM; 
+        this.proj.push(new Projectile(this.p.x, this.p.y, Math.atan2(ty-this.p.y, tx-this.p.x), 0, 'gren')); 
+        this.p.grenades--; 
+    }
+    
+    buildBarricade() { 
+        if(this.p.barricades <= 0) return; // OPRAVA
+        let bx=this.p.x+Math.cos(this.p.ang)*50, by=this.p.y+Math.sin(this.p.ang)*50; 
+        if(!isWall(bx,by,20,this.map.grid)) { 
+            this.bars.push(new Barricade(bx,by)); 
+            this.p.barricades--; 
+        } 
+    }
+    
     useStairs() { 
         if(!Net.active || Net.isHost) { 
             if(getDist(this.p.x, this.p.y, this.map.stairs.x, this.map.stairs.y)<80) { 
@@ -635,9 +652,9 @@ class GameManager {
                     t:'state', 
                     hx:this.p.x, hy:this.p.y, ha:this.p.ang, hname: playerName,
                     cls: Net.clientsData, 
-                    z:this.z.map(z=>({x:z.x,y:z.y,ang:z.ang,hp:z.hp,maxHp:z.maxHp,isBoss:z.isBoss})), 
-                    p:this.proj.map(p=>({x:p.x,y:p.y,angle:p.angle,type:p.type,timer:p.timer})), 
-                    l:this.loot.map(l=>({x:l.x,y:l.y,type:l.type})), 
+                    z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,b:z.isBoss})), 
+                    p:this.proj.map(p=>({x:p.x,y:p.y,a:p.angle,t:p.type,tm:p.timer})), 
+                    l:this.loot.map(l=>({x:l.x,y:l.y,t:l.type})), 
                     b:this.bars.map(b=>({x:b.x,y:b.y})), 
                     w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
                 });
@@ -780,21 +797,21 @@ class GameManager {
         
         if (Net.active && !Net.isHost && Net.hostData) { 
             Net.hostData.l.forEach(l=>{ 
-                if(l.type === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
-                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.type]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                if(l.t === 'key') { ctx.fillStyle='#ffd700'; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
+                else { ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); }
             });
             Net.hostData.b.forEach(b=>{ ctx.fillStyle='#8d6e63'; ctx.fillRect(b.x-this.cam.x-20,b.y-this.cam.y-10,40,20); });
-            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.type==='gren'?(p.timer%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.type==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
-            Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.ang); ctx.fillStyle=z.hp<z.maxHp/2?'#1f3d14':(z.isBoss?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.isBoss?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.isBoss?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.isBoss?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
+            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
+            Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); ctx.fillStyle=z.h<z.mh/2?'#1f3d14':(z.b?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.b?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.b?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.b?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
             
-            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.hang); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-            ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hname || "Host", Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
+            ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+            ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(Net.hostData.hname || "Host", Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y - 25);
             
             for (let id in Net.hostData.cls) {
                 if (id === Net.myId) continue; 
                 let c = Net.hostData.cls[id];
                 ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-                ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
+                ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
             }
         } else {
             this.loot.forEach(l=>l.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam));
@@ -804,7 +821,7 @@ class GameManager {
                 for (let id in Net.clientsData) {
                     let c = Net.clientsData[id];
                     ctx.save(); ctx.translate(c.x-this.cam.x, c.y-this.cam.y); ctx.rotate(c.ang); ctx.fillStyle=c.c; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
-                    ctx.fillStyle='#fff'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
+                    ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.name || "Hráč", c.x-this.cam.x, c.y-this.cam.y - 25);
                 }
             }
         }
