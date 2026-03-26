@@ -18,7 +18,7 @@
         .hud-text { font-size: 16px; color: #fff; font-weight: bold; margin-top: 4px; }
         #money-ui { color: #4caf50; font-size: 20px; }
         #xp-ui { color: #9c27b0; font-size: 18px; }
-        #key-ui { color: #ffd700; font-size: 18px; margin-top: 5px; font-weight: bold; }
+        #key-ui { color: #ffd700; font-size: 16px; margin-top: 5px; font-weight: bold; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 4px; display: inline-block; border: 1px solid #444; }
         
         #resources-ui { margin-top: 10px; font-size: 14px; color: #ddd; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; border: 1px solid #333; }
         #controls-ui { margin-top: 10px; font-size: 12px; color: #888; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; }
@@ -67,14 +67,14 @@
         <div class="bar-bg" style="height: 6px;"><div id="lvl-bar" class="bar-fill"></div></div>
         <div class="hud-text" id="lvl-ui" style="color:#2196f3; font-size:12px;">Level 1</div>
         <div class="hud-text" id="money-ui">$0</div>
-        <div class="hud-text" id="xp-ui">XP: 0</div>
-        <div id="key-ui">Klíč od patra: NE</div>
+        <div class="hud-text" id="xp-ui">XP [online]: 0</div>
+        <div id="key-ui">Cíl patra: Neznámý</div>
         <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
         <div class="hud-text" id="grenade-ui" style="color:#ff9800;">G: 0 | M: 0 | FB: 0 | F: 0 | T: 0 | MIN: 0</div>
         <div id="resources-ui">Šrot: <span id="res-sc">0</span> | Látka: <span id="res-cl">0</span><br>Chem: <span id="res-ch">0</span> | Dřevo: <span id="res-wd">0</span></div>
         <div id="controls-ui">
-            [1-4] Zbraně | [B] Obchod | [C] Craft<br>[E] Patro/Automat | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
+            [1-4] Zbraně | [C] Craft<br>[E] Akce (Dveře/Automat) | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
         </div>
     </div>
 
@@ -87,14 +87,14 @@
     <div id="start-menu" class="overlay-screen">
         <h1>TOWER OF DECAY</h1>
         <input type="text" id="player-name" placeholder="Přezdívka" maxlength="12" value="Přeživší">
-        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP: <span id="global-xp">0</span></div>
+        <div style="margin-bottom: 10px; color: #9c27b0; font-weight: bold;">Globální XP [online]: <span id="global-xp">0</span></div>
         <div>
             <button class="btn" onclick="UI.modeSelect('single')">Základní Hra</button>
-            <button class="btn" style="border-color:#4caf50; color:#c8e6c9;" onclick="UI.modeSelect('multi')">CO-OP (LAN)</button>
+            <button class="btn" style="border-color:#4caf50; color:#c8e6c9;" onclick="UI.modeSelect('multi')">CO-OP [online] (LAN [online])</button>
         </div>
         <div style="margin-top: 10px;">
             <button class="btn" onclick="startEditor()">Editor Mapy</button>
-            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG</button>
+            <button class="btn" style="border-color:#9c27b0; color:#e1bee7;" onclick="UI.upgrades()">RPG [online]</button>
             <button class="btn" onclick="UI.leaderboard()">Žebříček</button>
         </div>
     </div>
@@ -121,13 +121,13 @@
 
     <div id="upgrade-screen" class="overlay-screen" style="display: none;">
         <h1 style="color:#9c27b0;">VÝZKUM A VYLEPŠENÍ</h1>
-        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP: <span id="upg-xp">0</span></div>
+        <div style="margin-bottom: 20px; font-size: 24px; color: #fff;">Dostupné XP [online]: <span id="upg-xp">0</span></div>
         <div class="menu-grid">
-            <div class="menu-item"><h4>Zesílené zdraví (+10 HP)</h4><p>100 XP</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
-            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
-            <div class="menu-item"><h4>Startovní Molotov (+1)</h4><p>250 XP</p><button class="btn" onclick="buyUpgrade('molo', 250)">Koupit</button></div>
+            <div class="menu-item"><h4>Zesílené zdraví (+10 HP [online])</h4><p>100 XP [online]</p><button class="btn" onclick="buyUpgrade('hp', 100)">Koupit</button></div>
+            <div class="menu-item"><h4>Atletika (+5 Rychlost)</h4><p>150 XP [online]</p><button class="btn" onclick="buyUpgrade('spd', 150)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Granát (+1)</h4><p>200 XP [online]</p><button class="btn" onclick="buyUpgrade('gren', 200)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Flashbang (+1)</h4><p>250 XP [online]</p><button class="btn" onclick="buyUpgrade('flash', 250)">Koupit</button></div>
+            <div class="menu-item"><h4>Startovní Molotov (+1)</h4><p>250 XP [online]</p><button class="btn" onclick="buyUpgrade('molo', 250)">Koupit</button></div>
         </div>
         <button class="btn" onclick="UI.startMenu()">Zpět do Menu</button>
     </div>
@@ -135,7 +135,7 @@
     <div id="class-screen" class="overlay-screen" style="display: none;">
         <h1>VÝBĚR TŘÍDY</h1>
         <div class="class-grid">
-            <div class="class-card" onclick="UI.finalizeStart('soldier')"><h3>Voják</h3><p>+ Puška & Granát</p><p>+ 130 HP</p></div>
+            <div class="class-card" onclick="UI.finalizeStart('soldier')"><h3>Voják</h3><p>+ Puška & Granát</p><p>+ 130 HP [online]</p></div>
             <div class="class-card" onclick="UI.finalizeStart('scavenger')"><h3>Průzkumník</h3><p>+ Pistole & Kuše</p><p>+ Rychlost & Loot</p></div>
             <div class="class-card" onclick="UI.finalizeStart('engineer')"><h3>Inženýr</h3><p>+ Brokovnice</p><p>+ Start s Turretem</p></div>
             <div class="class-card" onclick="UI.finalizeStart('medic')"><h3>Zdravotník</h3><p>+ Pistole</p><p>+ Rychlé léčení</p></div>
@@ -146,10 +146,10 @@
     </div>
 
     <div id="shop-screen" class="overlay-screen" style="display:none; padding-top: 40px;">
-        <h1 style="color:#4caf50;">OBCHOD (B)</h1>
+        <h1 style="color:#4caf50;">PRODEJNÍ AUTOMAT (SHOP)</h1>
         <p id="shop-money" style="color:#ffd700; font-size: 20px;"></p>
         <div class="menu-grid" style="grid-template-columns: 1fr 1fr 1fr; max-width: 900px; height: 60vh; overflow-y: auto; padding: 10px;">
-            <div class="menu-item"><h4>Lékárnička (+50 HP)</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
+            <div class="menu-item"><h4>Lékárnička (+50 HP [online])</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('heal', 80)">Koupit</button></div>
             <div class="menu-item"><h4>Munice (+30)</h4><p>$50</p><button class="btn" onclick="if(game)game.buy('ammo', 50)">Koupit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>$100</p><button class="btn" onclick="if(game)game.buy('grenade', 100)">Koupit</button></div>
             <div class="menu-item"><h4>Flashbang (+1)</h4><p>$80</p><button class="btn" onclick="if(game)game.buy('flashbang', 80)">Koupit</button></div>
@@ -162,14 +162,14 @@
             <div class="menu-item"><h4>Odstřelovačka</h4><p>$500</p><button class="btn" onclick="if(game)game.buyWep('sniper', 500)">Koupit</button></div>
             <div class="menu-item"><h4>Minigun</h4><p>$1000</p><button class="btn" onclick="if(game)game.buyWep('minigun', 1000)">Koupit</button></div>
         </div>
-        <button class="btn" onclick="UI.closeGameMenus()">Zavřít [B]</button>
+        <button class="btn" onclick="UI.closeGameMenus()">Zavřít Obchod</button>
     </div>
 
     <div id="craft-screen" class="overlay-screen" style="display:none;">
         <h1 style="color:#00bcd4;">CRAFTING (C)</h1>
         <p id="craft-res" style="color:#ddd; font-size: 16px;"></p>
         <div class="menu-grid">
-            <div class="menu-item"><h4>Obvaz (+30 HP)</h4><p>2x Látka</p><button class="btn" onclick="if(game)game.craft('heal')">Vyrobit</button></div>
+            <div class="menu-item"><h4>Obvaz (+30 HP [online])</h4><p>2x Látka</p><button class="btn" onclick="if(game)game.craft('heal')">Vyrobit</button></div>
             <div class="menu-item"><h4>Munice (+20)</h4><p>2x Šrot, 1x Chem</p><button class="btn" onclick="if(game)game.craft('ammo')">Vyrobit</button></div>
             <div class="menu-item"><h4>Granát (+1)</h4><p>3x Šrot, 2x Chem</p><button class="btn" onclick="if(game)game.craft('grenade')">Vyrobit</button></div>
             <div class="menu-item"><h4>Molotov (+1)</h4><p>2x Chem, 1x Látka</p><button class="btn" onclick="if(game)game.craft('molotov')">Vyrobit</button></div>
@@ -195,8 +195,12 @@
     <div id="death-screen" class="overlay-screen" style="display:none;">
         <h1 style="font-size: 60px;">MRTVÍ (GAME OVER)</h1>
         <p id="death-stats" style="font-size: 20px; color: white;"></p>
-        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP!</p>
+        <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP [online]!</p>
         <button class="btn" onclick="UI.restartApp()">Zpět do Menu</button>
+    </div>
+    
+    <div id="editor-ui" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid #00bcd4; display: none; text-align: center; color: #00bcd4; font-weight: bold; z-index: 10; border-radius: 10px;">
+        REŽIM EDITORU<br><span style="font-size: 12px; color: #ccc;">[L. Tlačítko] Zeď | [P. Tlačítko] Podlaha<br>Zmáčkni <b>[ENTER]</b> pro spuštění mapy!</span>
     </div>
 </div>
 
@@ -272,8 +276,8 @@ const CLASSES = {
 const PERKS = [
     { id: 'dmg', name: 'Zvýšené poškození', desc: '+20% poškození zbraní', fn: p => p.dmgMult += 0.2 },
     { id: 'spd', name: 'Rychlejší nohy', desc: '+15% rychlost', fn: p => p.spd *= 1.15 },
-    { id: 'hp', name: 'Železná kůže', desc: '+50 Max HP', fn: p => { p.maxHp += 50; p.hp += 50; } },
-    { id: 'vamp', name: 'Vampýrismus', desc: '+1 HP za zabití nepřítele', fn: p => p.vampirism = true },
+    { id: 'hp', name: 'Železná kůže', desc: '+50 Max HP [online]', fn: p => { p.maxHp += 50; p.hp += 50; } },
+    { id: 'vamp', name: 'Vampýrismus', desc: '+1 HP [online] za zabití nepřítele', fn: p => p.vampirism = true },
     { id: 'loot', name: 'Sběrač', desc: '+30% šance na drop', fn: p => p.clsData.lootMod *= 1.3 },
     { id: 'pierce', name: 'Průrazné střely', desc: 'Kulky projdou skrz 1 nepřítele', fn: p => p.perkPierce += 1 }
 ];
@@ -287,7 +291,6 @@ window.addEventListener('keydown', e => {
         if(k==='f') game.buildBarricade(); if(k==='t') game.buildTurret(); if(k==='m') game.buildMine();
         if(k==='e') { game.useStairs(); game.useVending(); }
         if(k==='r') game.reviveTeammate();
-        if(k==='b' && game.inter) UI.toggleGameMenu('shop');
         if(k==='c') UI.toggleGameMenu('craft');
     }
     if(appState==='editor' && e.key==='Enter') { appState='menu'; document.getElementById('editor-ui').style.display='none'; gameMode='single'; UI.classSelect(); }
@@ -371,7 +374,7 @@ const Net = {
     startHostGame() {
         appState = 'game'; UI.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block';
         game = new GameManager(selectedClass, null);
-        this.broadcast({ t: 'init_game', map: { grid: game.map.grid, startP: game.map.startP, stairs: game.map.stairs, barrels: game.map.barrels, vends: game.map.vends } });
+        this.broadcast({ t: 'init_game', map: { grid: game.map.grid, startP: game.map.startP, stairs: game.map.stairs, barrels: game.map.barrels, vends: game.map.vends, req: game.req } });
     }
 };
 
@@ -469,7 +472,7 @@ class GameMap {
                 for(let i=0;i<5;i++) {
                     let bx, by, tries=0;
                     do { bx = Math.random()*CFG.MAP_S*CFG.TS; by = Math.random()*CFG.MAP_S*CFG.TS; tries++; } while(isWall(bx,by,20,this.grid) && tries<50);
-                    if(tries<50) this.barrels.push({x:bx, y:by, hp:50, active:true});
+                    if(tries<50) this.barrels.push({x:bx, y:by, hp:50, active:true, trig:false, timer:1});
                 }
             } else {
                 for(let i=0;i<3;i++) {
@@ -491,12 +494,6 @@ class GameMap {
         ctx.fillStyle='#f1c40f'; ctx.fillRect(this.stairs.x-cam.x-20, this.stairs.y-cam.y-20, 40, 40);
         ctx.fillStyle='#000'; ctx.font='20px Arial'; ctx.fillText('E', this.stairs.x-cam.x-6, this.stairs.y-cam.y+6);
         
-        this.barrels.forEach(b => {
-            if(b.active) {
-                ctx.fillStyle='#d32f2f'; ctx.beginPath(); ctx.arc(b.x-cam.x, b.y-cam.y, 12, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(b.x-cam.x, b.y-cam.y, 8, 0, Math.PI*2); ctx.stroke();
-            }
-        });
         this.vends.forEach(v => {
             ctx.fillStyle='#00bcd4'; ctx.fillRect(v.x-cam.x-15, v.y-cam.y-20, 30, 40);
             ctx.fillStyle='#fff'; ctx.fillRect(v.x-cam.x-10, v.y-cam.y-15, 20, 15);
@@ -758,6 +755,17 @@ class GameManager {
         this.map = new GameMap(cGrid, this.isShop); 
         this.p = new Player(this.map.startP, clsKey);
         
+        if(cGrid && cGrid.req) { this.req = cGrid.req; } 
+        else {
+            if(this.isShop) this.req = { type: 'free' };
+            else {
+                let r = Math.random();
+                if(r < 0.33) this.req = { type: 'key' };
+                else if(r < 0.66) this.req = { type: 'money', val: this.floor * 100 };
+                else { let a = Math.ceil(this.floor * 1.2); this.req = { type: 'res', sc: a, cl: a, ch: Math.max(1, Math.floor(a/2)), wd: Math.max(1, Math.floor(a/2)) }; }
+            }
+        }
+
         if(carryData) {
             this.p.hp = carryData.hp; this.p.maxHp = carryData.maxHp; this.p.stam = carryData.stam; this.p.money = carryData.money; this.p.xp = carryData.xp; this.p.gameXp = carryData.gameXp; this.p.lvl = carryData.lvl; this.p.nextLvl = carryData.nextLvl;
             this.p.grenades = carryData.grenades; this.p.molotovs = carryData.molotovs; this.p.flashbangs = carryData.flashbangs; this.p.barricades = carryData.barricades; this.p.turrets = carryData.turrets; this.p.mines = carryData.mines;
@@ -768,19 +776,16 @@ class GameManager {
             this.score=0; this.wave=0; this.isNight = false; this.dayTimer = 60;
         }
 
-        this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.turrets=[]; this.ft=[]; this.fires=[]; this.mines_arr=[]; this.barrels=[]; this.acids=[];
+        this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.turrets=[]; this.ft=[]; this.fires=[]; this.mines_arr=[]; this.acids=[];
         this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0; this.perkScreenOpen=false;
-        this.hasKey = this.isShop; 
+        this.hasKey = this.req.type !== 'key'; 
         
         let vw = canvas.width / CFG.ZOOM || 800; let vh = canvas.height / CFG.ZOOM || 600;
         this.cam = {x: this.p.x - vw/2, y: this.p.y - vh/2}; 
 
         if(!Net.active || Net.isHost) {
-            if(!this.isShop) this.map.barrels.forEach(b => this.barrels.push(new Barrel(b.x, b.y)));
             this.startWave(); 
-        } else if (cGrid && cGrid.barrels) {
-            cGrid.barrels.forEach(b => this.barrels.push(new Barrel(b.x, b.y)));
-        }
+        } 
     }
 
     getValidSpawn(minDist) {
@@ -820,7 +825,7 @@ class GameManager {
             document.getElementById('wave-text').innerText = `⚠ BOSS VLNA ${this.wave} ⚠`; SFX.play('boom');
         }
 
-        if (!this.hasKey && Math.random() < 0.5 && this.z.length > 0) { this.z[Math.floor(Math.random() * this.z.length)].hasKey = true; }
+        if (this.req.type === 'key' && !this.hasKey && Math.random() < 0.5 && this.z.length > 0) { this.z[Math.floor(Math.random() * this.z.length)].hasKey = true; }
         if (Math.random() < 0.3) { let pos = this.getValidSpawn(200); this.loot.push(new Loot(pos.x, pos.y, 'drop')); }
     }
 
@@ -840,13 +845,13 @@ class GameManager {
                     if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2 && !Net.clientsData[id].downed) { Net.sendTo(id, {t:'dmg', val:dmg/3}); }
                 }
             }
-            this.barrels.forEach(b => {
+            this.map.barrels.forEach(b => {
                 if(b.active && getDist(x,y,b.x,b.y)<rad) { b.hp -= dmg; if(b.hp<=0) { b.active=false; setTimeout(()=>this.explode(b.x,b.y,180,300), 100); } }
             });
         }
     }
 
-    triggerBarrel(idx) { if(this.barrels[idx] && !this.barrels[idx].trig) { this.barrels[idx].trig = true; this.barrels[idx].timer = 1.0; } }
+    triggerBarrel(idx) { if(this.map.barrels[idx] && !this.map.barrels[idx].trig) { this.map.barrels[idx].trig = true; this.map.barrels[idx].timer = 1.0; } }
     createFirePool(x, y) { this.fires.push(new FirePool(x,y)); }
 
     throwProj(type) { 
@@ -870,11 +875,29 @@ class GameManager {
     useStairs() { 
         if(!Net.active || Net.isHost) { 
             if(getDist(this.p.x, this.p.y, this.map.stairs.x, this.map.stairs.y)<80 && !this.p.downed) { 
-                if (this.hasKey) {
-                    let carryData = { floor: this.floor+1, hp: this.p.hp, maxHp: this.p.maxHp, stam: this.p.stam, money: this.p.money, xp: this.p.xp, gameXp: this.p.gameXp, lvl: this.p.lvl, nextLvl: this.p.nextLvl, grenades: this.p.grenades, molotovs: this.p.molotovs, flashbangs: this.p.flashbangs, barricades: this.p.barricades, turrets: this.p.turrets, mines: this.p.mines, res: this.p.res, weps: this.p.weps, dmgMult: this.p.dmgMult, vampirism: this.p.vampirism, spd: this.p.spd, pierce: this.p.perkPierce, score: this.score+100, wave: this.wave, isNight: this.isNight, dayTimer: this.dayTimer };
+                let canPass = false; let msg = "";
+                if(this.req.type === 'free') canPass = true;
+                else if(this.req.type === 'key') {
+                    if(this.hasKey) { canPass = true; this.hasKey = false; }
+                    else msg = "K otevření potřebuješ ZLATÝ KLÍČ!";
+                }
+                else if(this.req.type === 'money') {
+                    if(this.p.money >= this.req.val) { canPass = true; this.p.money -= this.req.val; }
+                    else msg = `K otevření potřebuješ zaplatit $${this.req.val}!`;
+                }
+                else if(this.req.type === 'res') {
+                    if(this.p.res.sc >= this.req.sc && this.p.res.cl >= this.req.cl && this.p.res.ch >= this.req.ch && this.p.res.wd >= this.req.wd) {
+                        canPass = true;
+                        this.p.res.sc -= this.req.sc; this.p.res.cl -= this.req.cl; this.p.res.ch -= this.req.ch; this.p.res.wd -= this.req.wd;
+                    } else msg = `Chybí suroviny! Potřebuješ: ${this.req.sc} Šrot, ${this.req.cl} Látka, ${this.req.ch} Chem, ${this.req.wd} Dřevo.`;
+                }
+
+                if(canPass) {
+                    this.floor++; this.score+=100;
+                    let carryData = { floor: this.floor, hp: this.p.hp, maxHp: this.p.maxHp, stam: this.p.stam, money: this.p.money, xp: this.p.xp, gameXp: this.p.gameXp, lvl: this.p.lvl, nextLvl: this.p.nextLvl, grenades: this.p.grenades, molotovs: this.p.molotovs, flashbangs: this.p.flashbangs, barricades: this.p.barricades, turrets: this.p.turrets, mines: this.p.mines, res: this.p.res, weps: this.p.weps, dmgMult: this.p.dmgMult, vampirism: this.p.vampirism, spd: this.p.spd, pierce: this.p.perkPierce, score: this.score, wave: this.wave, isNight: this.isNight, dayTimer: this.dayTimer };
                     game = new GameManager(selectedClass, null, carryData);
-                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, barrels:game.map.barrels, vends:game.map.vends}, carry: carryData}); 
-                } else alert("K průchodu dveřmi potřebuješ najít ZLATÝ KLÍČ od Zombíka!");
+                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, barrels:game.map.barrels, vends:game.map.vends, req:game.req}, carry: carryData}); 
+                } else alert(msg);
             } 
         } 
     }
@@ -933,9 +956,9 @@ class GameManager {
                     tu:this.turrets.map(tu=>({x:tu.x,y:tu.y,a:tu.ang})),
                     f:this.fires.map(f=>({x:f.x,y:f.y,l:f.life})),
                     m:this.mines_arr.map(m=>({x:m.x,y:m.y})),
-                    br:this.barrels.filter(br=>br.active).map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
+                    br:(this.map.barrels||[]).filter(br=>br.active).map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
                     ac:this.acids.map(a=>({x:a.x, y:a.y, tm:a.timer})),
-                    w:this.wave, tm:this.timer, int:this.inter, hk: this.hasKey 
+                    w:this.wave, tm:this.timer, int:this.inter, req: this.req, hk: this.hasKey 
                 });
                 
                 this.loot = this.loot.filter(l => { 
@@ -951,15 +974,28 @@ class GameManager {
                 if(Net.hostData) {
                     this.wave = Net.hostData.w; this.timer = Net.hostData.tm; this.inter = Net.hostData.int;
                     this.z = Net.hostData.z || []; this.proj = Net.hostData.p || []; this.loot = Net.hostData.l || []; this.bars = Net.hostData.b || []; this.turrets = Net.hostData.tu || [];
-                    this.hasKey = Net.hostData.hk; this.isNight = Net.hostData.nt; this.dayTimer = Net.hostData.ntm;
+                    this.req = Net.hostData.req; this.hasKey = Net.hostData.hk; this.isNight = Net.hostData.nt; this.dayTimer = Net.hostData.ntm;
                     this.fires = Net.hostData.f || []; this.mines_arr = Net.hostData.m || [];
-                    this.barrels = Net.hostData.br || []; this.acids = Net.hostData.ac || [];
+                    this.map.barrels = Net.hostData.br || []; this.acids = Net.hostData.ac || [];
                 }
             }
         }
 
         document.getElementById('time-ui').innerText = `${this.isNight ? 'NOC' : 'DEN'} (${Math.ceil(this.dayTimer)}s)`;
         document.getElementById('time-ui').style.color = this.isNight ? '#9c27b0' : '#ffeb3b';
+
+        let reqTxt = "";
+        if(this.req) {
+            if(this.req.type === 'free') reqTxt = 'Cíl: Dveře jsou otevřené';
+            else if(this.req.type === 'key') reqTxt = 'Cíl: Najít Zlatý Klíč ' + (this.hasKey ? '(MÁŠ)' : '(NEMÁŠ)');
+            else if(this.req.type === 'money') reqTxt = `Cíl: Zaplatit $${this.req.val} ` + (this.p.money >= this.req.val ? '(MÁŠ)' : '(NEMÁŠ)');
+            else if(this.req.type === 'res') reqTxt = `Cíl: Šrot ${this.p.res.sc}/${this.req.sc}, Látka ${this.p.res.cl}/${this.req.cl}, Chem ${this.p.res.ch}/${this.req.ch}, Dřevo ${this.p.res.wd}/${this.req.wd}`;
+            
+            document.getElementById('key-ui').innerText = reqTxt;
+            let reqMet = false;
+            if(this.req.type === 'free' || (this.req.type === 'key' && this.hasKey) || (this.req.type === 'money' && this.p.money >= this.req.val) || (this.req.type === 'res' && this.p.res.sc >= this.req.sc && this.p.res.cl >= this.req.cl && this.p.res.ch >= this.req.ch && this.p.res.wd >= this.req.wd)) reqMet = true;
+            document.getElementById('key-ui').style.color = reqMet ? '#4caf50' : '#ffd700';
+        }
 
         if(this.inter) {
             if(!this.isShop) {
@@ -1010,9 +1046,9 @@ class GameManager {
                             if(Net.isHost) Net.broadcast({t:'dmg_num', x:z.x, y:z.y, txt:Math.floor(dmg), col:'#fff'});
                         } 
                     }); 
-                    this.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) this.triggerBarrel(i); });
+                    this.map.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) this.triggerBarrel(i); });
                 } else {
-                    this.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) Net.sendToHost({t:'hit_barrel', idx:i}); });
+                    this.map.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) Net.sendToHost({t:'hit_barrel', idx:i}); });
                 }
                 if(this.p.stam>=10 && w.type!=='melee_cont') this.p.stam -= 10;
                 this.p.fireT = w.rate * sMod;
@@ -1039,7 +1075,7 @@ class GameManager {
                             if(pr.pierce > 0) pr.pierce--; else if(pr.type.includes('pierce')) pr.active = false; 
                         } 
                     }); 
-                    this.barrels.forEach((br, i)=>{ if(pr.active && getDist(pr.x, pr.y, br.x, br.y) < br.r && pr.type==='bullet') { pr.active=false; this.triggerBarrel(i); } });
+                    this.map.barrels.forEach((br, i)=>{ if(pr.active && getDist(pr.x, pr.y, br.x, br.y) < br.r && pr.type==='bullet') { pr.active=false; this.triggerBarrel(i); } });
                 }
                 
                 if(pr.type === 'acid_spit' && pr.active) {
@@ -1058,7 +1094,7 @@ class GameManager {
 
             this.z.forEach(z => z.update(dt, targets, this.map.grid, this.bars, this.turrets, this.proj));
             this.turrets.forEach(tu => tu.update(dt, this.z, this.proj, true));
-            this.barrels.forEach(br => br.update(dt, this));
+            this.map.barrels.forEach(br => br.update(dt, this));
             this.acids.forEach(a => a.update(dt, targets, this));
 
             this.z = this.z.filter(z => {
@@ -1087,7 +1123,7 @@ class GameManager {
                 } return true; 
             });
             this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0); this.turrets = this.turrets.filter(tu => tu.hp > 0);
-            this.barrels = this.barrels.filter(br => br.active); this.acids = this.acids.filter(a => a.timer > 0);
+            this.map.barrels = this.map.barrels.filter(br => br.active); this.acids = this.acids.filter(a => a.timer > 0);
             this.fires = this.fires.filter(f => f.life > 0); this.mines_arr = this.mines_arr.filter(m => m.active);
         } else {
             this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); 
@@ -1109,8 +1145,6 @@ class GameManager {
         document.getElementById('grenade-ui').innerText = `G: ${this.p.grenades} | M: ${this.p.molotovs} | FB: ${this.p.flashbangs} | F: ${this.p.barricades} | T: ${this.p.turrets} | MIN: ${this.p.mines}`;
         document.getElementById('floor-ui').innerText = 'Patro: ' + this.floor;
         document.getElementById('res-sc').innerText = this.p.res.sc; document.getElementById('res-cl').innerText = this.p.res.cl; document.getElementById('res-ch').innerText = this.p.res.ch; document.getElementById('res-wd').innerText = this.p.res.wd;
-        document.getElementById('key-ui').innerText = 'Klíč od patra: ' + (this.hasKey ? 'MÁŠ' : 'NE');
-        document.getElementById('key-ui').style.color = this.hasKey ? '#4caf50' : '#ffd700';
 
         if(this.p.hp <= 0 && !this.p.downed) this.p.downed = true;
 
@@ -1174,7 +1208,7 @@ class GameManager {
                 ctx.fillStyle=c.downed?'#f00':'#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.downed?"POMOC!":(c.name || "Hráč"), c.x-this.cam.x, c.y-this.cam.y - 25);
             }
         } else {
-            this.acids.forEach(a=>a.draw(this.cam)); this.loot.forEach(l=>l.draw(this.cam)); this.barrels.forEach(br=>br.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam)); this.turrets.forEach(tu=>tu.draw(this.cam));
+            this.acids.forEach(a=>a.draw(this.cam)); this.loot.forEach(l=>l.draw(this.cam)); this.map.barrels.forEach(br=>br.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam)); this.turrets.forEach(tu=>tu.draw(this.cam));
             this.mines_arr.forEach(m=>m.draw(this.cam)); this.fires.forEach(f=>f.draw(this.cam));
             this.proj.forEach(pr=>pr.draw(this.cam)); this.z.forEach(z=>z.draw(this.cam));
             
