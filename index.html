@@ -3,87 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herní Doupě</title>
+    <title>CENTRÁLNÍ HERNÍ HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
+        /* Definice globálních proměnných pro barvy (snadná změna) */
+        :root {
+            --bg-color: #0d0d0d; /* Velmi tmavá, skoro černá */
+            --bg-accent: #1a1a1a; /* O něco světlejší pro panely */
+            --primary-red: #e50914; /* Hlavní herní červená */
+            --hover-red: #ff1a25; /* Světlejší červená pro efekty */
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --font-header: 'Orbitron', sans-serif; /* Futuristické pro nadpisy */
+            --font-body: 'Roboto', sans-serif; /* Čisté pro text */
+            --shadow-neon: 0 0 15px rgba(229, 9, 20, 0.5);
+        }
+
+        /* Základní reset a nastavení těla */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
+            font-family: var(--font-body);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        /*--- STYLING ZÁHLAVÍ (HEADER) ---*/
         header {
-            background-color: #e50914;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 3px solid #b20710;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px); /* Efekt rozmazání pozadí za lištou */
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-red);
+            box-shadow: var(--shadow-neon);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        h1 {
+
+        header h1 {
+            font-family: var(--font-header);
             margin: 0;
-            font-size: 2.5rem;
+            font-size: 1.8rem;
+            color: var(--primary-red);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(229, 9, 20, 0.7);
+        }
+
+        /*--- STYLING NAVIGACE ---*/
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--primary-red);
+            transform: translateY(-2px); /* Jemné posunutí nahoru */
+        }
+
+        /*--- HLAVNÍ OBSAH (MAIN) ---*/
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: radial-gradient(circle at center, #220000 0%, #0d0d0d 70%); /* Jemný červený střed */
+        }
+
+        .hero-section h2 {
+            font-family: var(--font-header);
+            font-size: 3rem;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
-        nav {
-            background-color: #333;
-            padding: 15px;
-            text-align: center;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        nav a:hover {
-            color: #e50914;
-        }
-        .container {
-            padding: 50px 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        p {
+
+        .hero-section p {
+            color: var(--text-muted);
             font-size: 1.2rem;
-            line-height: 1.6;
+            max-width: 600px;
+            margin-bottom: 50px;
+            font-weight: 300;
         }
-        .game-folder {
-            display: inline-block;
-            margin-top: 40px;
-            padding: 15px 30px;
-            background-color: #28a745;
-            color: white;
+
+        /*--- STYLING ODKAZU NA SLOŽKU (TLAČÍTKO) ---*/
+        .twd-launcher-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background-color: transparent;
+            color: var(--text-main);
             text-decoration: none;
-            font-size: 1.3rem;
+            font-family: var(--font-header);
+            font-size: 1.5rem;
             font-weight: bold;
-            border-radius: 8px;
-            transition: background-color 0.3s, transform 0.2s;
+            text-transform: uppercase;
+            padding: 20px 40px;
+            border: 3px solid var(--primary-red);
+            border-radius: 5px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: var(--shadow-neon);
+            overflow: hidden; /* Pro efekt přetečení světla */
         }
-        .game-folder:hover {
-            background-color: #218838;
-            transform: scale(1.05);
+
+        /* Ikona složky před textem */
+        .twd-launcher-btn::before {
+            content: '📁'; /* Lze nahradit FontAwesome ikonou */
+            font-size: 1.8rem;
+        }
+
+        /* Efekt při najetí myší na tlačítko */
+        .twd-launcher-btn:hover {
+            background-color: var(--primary-red);
+            box-shadow: 0 0 30px rgba(229, 9, 20, 0.8);
+            transform: scale(1.05); /* Zvětšení */
+        }
+
+        /* Záblesk světla, který projede tlačítkem při najetí */
+        .twd-launcher-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .twd-launcher-btn:hover::after {
+            left: 100%;
+        }
+
+        /*--- PATIČKA (FOOTER) ---*/
+        footer {
+            background-color: var(--bg-accent);
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #333;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Moje Videohry</h1>
+        <h1>GameHub</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Knihovna</a></li>
+                <li><a href="#">Statistiky</a></li>
+                <li><a href="#">Nastavení</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <nav>
-        <a href="#">Novinky</a>
-        <a href="#">Knihovna</a>
-        <a href="#">Oblíbené</a>
-    </nav>
+    <main class="container">
+        <div class="hero-section">
+            <h2>Vítej zpět, Commandere</h2>
+            <p>Všechny tvé herní světy jsou připraveny na jednom místě. Vyber si svou další misi.</p>
 
-    <div class="container">
-        <h2>Vítej v hlavním rozcestníku!</h2>
-        <p>Zde najdeš přístup ke všem svým uloženým hrám a projektům. Kliknutím na tlačítko níže přejdeš přímo do sekce přežití se zombíky.</p>
+            <a href="hry TWD/" class="twd-launcher-btn">
+                Spustit The Walking Dead
+            </a>
+        </div>
+    </main>
 
-        <a href="TWD/" class="game-folder">📁 Otevřít složku hry TWD</a>
-    </div>
+    <footer>
+        &copy; 2023 Tvůj Herní Systém | Vyrobeno pro rychlý přístup
+    </footer>
 
 </body>
 </html>
