@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD: Tower Survival - Co-op Update</title>
+    <title>TWD: Tower Survival - Co-op Fix</title>
     <style>
         body { background: #050505; color: #aaa; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; user-select: none; }
         #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -29,7 +29,6 @@
         h1 { color: #ff4d4d; font-size: 40px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
         .btn { background: #222; color: #fff; border: 2px solid #444; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: bold; margin: 6px; transition: 0.2s; text-transform: uppercase; }
         .btn:hover { background: #ff4d4d; border-color: #ff0000; transform: scale(1.05); }
-        .btn:disabled { background: #111; color: #555; border-color: #222; cursor: not-allowed; }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; max-width: 600px; }
         .menu-item { background: #111; border: 1px solid #333; padding: 15px; display: flex; flex-direction: column; justify-content: space-between;}
@@ -164,7 +163,7 @@
         <h1 style="font-size: 60px;">ZEMŘEL JSI</h1>
         <p id="death-stats" style="font-size: 20px; color: white;"></p>
         <p style="color: #9c27b0; font-weight: bold;">Získal jsi <span id="death-xp"></span> XP [online]!</p>
-        <button class="btn" onclick="window.location.href = window.location.href;">Zpět do Menu</button>
+        <button class="btn" onclick="UI.restartApp()">Zpět do Menu</button>
     </div>
     
     <div id="editor-ui" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid #00bcd4; display: none; text-align: center; color: #00bcd4; font-weight: bold; z-index: 10; border-radius: 10px;">
@@ -255,7 +254,7 @@ let peer = null;
 const Net = {
     active: false, isHost: true, conn: null,
     remoteData: { x: -1000, y: -1000, ang: 0 },
-    hostState: null,
+    hostData: null,
     
     initHost() {
         peer = new Peer(Math.floor(1000+Math.random()*9000).toString());
@@ -285,15 +284,15 @@ const Net = {
         this.conn.on('data', data => {
             if(data.t === 'init_game') {
                 appState = 'game'; UI.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block';
-                game = new GameManager(selectedClass, data.map); // Client starts game based on host map
+                game = new GameManager(selectedClass, data.map); 
             }
-            else if(data.t === 'state') this.hostData = data; // Receives state from host
+            else if(data.t === 'state') this.hostData = data; 
             else if(data.t === 'input') { this.remoteData.x = data.x; this.remoteData.y = data.y; this.remoteData.ang = data.ang; }
             else if(data.t === 'shoot') { if(game) game.proj.push(new Projectile(data.x, data.y, data.ang, data.dmg, 'bullet')); }
-            else if(data.t === 'dmg') { if(game) game.p.hp -= data.val; } // Client takes damage commanded by host
+            else if(data.t === 'dmg') { if(game) game.p.hp -= data.val; } 
             else if(data.t === 'loot') { if(game) { game.p.res[data.res]++; game.p.money+=15; game.p.xp+=5; game.score+=50;} }
         });
-        this.conn.on('close', () => { alert("Spojení ztraceno!"); location.reload(); });
+        this.conn.on('close', () => { alert("Spojení ztraceno!"); UI.restartApp(); });
     },
     send(data) { if(this.conn && this.conn.open) this.conn.send(data); },
     startHostGame() {
@@ -333,7 +332,18 @@ const UI = {
         game.menuOpen=type; this.show(type+'-screen');
         document.getElementById('shop-money').innerText=`Peníze: $${game.p.money}`; document.getElementById('craft-res').innerText=`Šrot:${game.p.res.sc} | Látka:${game.p.res.cl} | Chem:${game.p.res.ch} | Dřevo:${game.p.res.wd}`;
     },
-    closeGameMenus() { this.show(''); if(game) game.menuOpen=null; }
+    closeGameMenus() { this.show(''); if(game) game.menuOpen=null; },
+    restartApp() {
+        document.getElementById('death-screen').style.display='none';
+        document.getElementById('hud').style.display='none';
+        document.getElementById('wave-ui').style.display='none';
+        if(Net.conn) { Net.conn.close(); }
+        Net.active = false;
+        Net.isHost = true;
+        game = null;
+        appState = 'menu';
+        this.startMenu();
+    }
 };
 
 function buyUpgrade(t, c) {
@@ -371,7 +381,7 @@ class GameMap {
         if(cGrid) {
             this.grid = cGrid.grid || cGrid;
             if(cGrid.startP) { this.startP = cGrid.startP; this.stairs = cGrid.stairs; }
-            else { // Z editoru
+            else { 
                 let emps=[]; for(let y=1;y<CFG.MAP_S-1;y++) for(let x=1;x<CFG.MAP_S-1;x++) if(this.grid[y][x]===0) emps.push({x,y});
                 if(emps.length>0) { this.startP={x:emps[0].x*CFG.TS+CFG.TS/2, y:emps[0].y*CFG.TS+CFG.TS/2}; this.stairs={x:emps[emps.length-1].x*CFG.TS+CFG.TS/2, y:emps[emps.length-1].y*CFG.TS+CFG.TS/2}; }
                 else { this.startP={x:400,y:400}; this.stairs={x:600,y:600}; }
@@ -417,7 +427,7 @@ class Player {
     draw(cam, isRemote) {
         ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang);
         ctx.fillStyle=isRemote?'#4caf50':'#4a90e2'; ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
+        ctx.fillStyle='#333'; ctx.fillRect(10,-3,this.wep.type==='melee'?30:20,6); ctx.restore();
     }
 }
 
@@ -433,7 +443,7 @@ class Zombie {
             let ny=this.y+vy*dt; if(!isWall(this.x, ny, this.r, mapGrid)) this.y=ny;
             if(d<this.r+15) { 
                 if(t===p) { p.hp -= (this.b?50:25)*dt; SFX.play('hit'); }
-                else if(Net.isHost) Net.send({t:'dmg', val:(this.b?50:25)*dt}); // Host říká klientovi že dostal hit
+                else if(Net.isHost) Net.send({t:'dmg', val:(this.b?50:25)*dt});
             }
             bars.forEach(b=>{if(getDist(this.x,this.y,b.x,b.y)<this.r+20){b.hp-=(this.b?100:30)*dt; this.x-=vx*dt; this.y-=vy*dt;}});
         }
@@ -462,7 +472,7 @@ class GameManager {
         this.map = new GameMap(cGrid); this.p = new Player(this.map.startP, clsKey);
         this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.score=0; this.floor=1; this.wave=0; this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0;
         this.cam = {x:this.p.x-canvas.width/CFG.ZOOM/2, y:this.p.y-canvas.height/CFG.ZOOM/2};
-        if(!Net.active || Net.isHost) this.startWave(); // Only host starts wave
+        if(!Net.active || Net.isHost) this.startWave(); 
     }
     startWave() {
         this.wave++; this.inter=false; document.getElementById('wave-text').innerText=`VLNA ${this.wave}`;
@@ -489,11 +499,10 @@ class GameManager {
     update(dt) {
         if(this.menuOpen) return;
 
-        // MULTIPLAYER SYNC
         if(Net.active) {
             if(Net.isHost) {
+                // Host posila kulky z array proj pod klicem 'p'
                 Net.send({ t:'state', hx:this.p.x, hy:this.p.y, ha:this.p.ang, z:this.z.map(z=>({x:z.x,y:z.y,a:z.ang,h:z.hp,mh:z.maxHp,b:z.isBoss})), p:this.proj.map(p=>({x:p.x,y:p.y,a:p.a,t:p.t,tm:p.timer})), l:this.loot.map(l=>({x:l.x,y:l.y,t:l.t})), b:this.bars.map(b=>({x:b.x,y:b.y})), w:this.wave, tm:this.timer, int:this.inter });
-                // Check remote player loot
                 this.loot = this.loot.filter(l => { if(getDist(Net.remoteData.x, Net.remoteData.y, l.x, l.y) < 25) { Net.send({t:'loot', res:l.t}); return false; } return true; });
             } else {
                 Net.send({ t:'input', x:this.p.x, y:this.p.y, ang:this.p.ang });
@@ -548,25 +557,24 @@ class GameManager {
 
         this.map.draw(this.cam, vw, vh);
         
-        if (Net.active && !Net.isHost && Net.hostData) { // Client renders from host data
+        if (Net.active && !Net.isHost && Net.hostData) { 
+            // OPRVA: Zde jsem hledal '.pr' misto spravneho '.p'
             Net.hostData.l.forEach(l=>{ ctx.fillStyle={sc:'#9e9e9e',cl:'#eee',ch:'#0f0',wd:'#795548'}[l.t]; ctx.fillRect(l.x-this.cam.x-6,l.y-this.cam.y-6,12,12); });
             Net.hostData.b.forEach(b=>{ ctx.fillStyle='#8d6e63'; ctx.fillRect(b.x-this.cam.x-20,b.y-this.cam.y-10,40,20); });
-            Net.hostData.pr.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
+            Net.hostData.p.forEach(p=>{ ctx.fillStyle=p.t==='gren'?(p.tm%0.2<0.1?'#f00':'#0a0'):'#ff0'; ctx.beginPath(); ctx.arc(p.x-this.cam.x, p.y-this.cam.y, p.t==='gren'?6:3, 0, Math.PI*2); ctx.fill(); });
             Net.hostData.z.forEach(z=>{ ctx.save(); ctx.translate(z.x-this.cam.x, z.y-this.cam.y); ctx.rotate(z.a); ctx.fillStyle=z.h<z.mh/2?'#1f3d14':(z.b?'#550000':'#2e5c1e'); ctx.beginPath(); ctx.arc(0,0,z.b?30:15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc((z.b?30:15)/2,-5,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((z.b?30:15)/2,5,2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
             
-            // Render Host
             ctx.save(); ctx.translate(Net.hostData.hx-this.cam.x, Net.hostData.hy-this.cam.y); ctx.rotate(Net.hostData.ha); ctx.fillStyle='#4caf50'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
         } else {
             this.loot.forEach(l=>l.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam));
             this.proj.forEach(pr=>pr.draw(this.cam)); this.z.forEach(z=>z.draw(this.cam));
             
-            // Render Remote Client if Host
             if (Net.active && Net.isHost) {
                 ctx.save(); ctx.translate(Net.remoteData.x-this.cam.x, Net.remoteData.y-this.cam.y); ctx.rotate(Net.remoteData.ang); ctx.fillStyle='#4caf50'; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.fillRect(10,-3,20,6); ctx.restore();
             }
         }
         
-        this.p.draw(this.cam); // Local Player
+        this.p.draw(this.cam); 
         
         let grad=ctx.createRadialGradient(this.p.x-this.cam.x, this.p.y-this.cam.y, 100, this.p.x-this.cam.x, this.p.y-this.cam.y, 600);
         grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.9)');
