@@ -213,6 +213,7 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
+// Fog Canvas pro správné vykreslení světla
 const fogC = document.createElement('canvas');
 const fogCtx = fogC.getContext('2d');
 
@@ -748,7 +749,11 @@ class Turret {
         if (isHost && this.fireT <= 0 && zomb.length > 0) {
             let closest = null, minD = 400;
             zomb.forEach(z => { let d = getDist(this.x, this.y, z.x, z.y); if(d < minD) { minD = d; closest = z; } });
-            if (closest) { this.ang = Math.atan2(closest.y - this.y, closest.x - this.x); proj.push(new Projectile(this.x, this.y, this.ang, 15, 'bullet')); this.fireT = 0.3; SFX.play('shoot'); }
+            if (closest) {
+                this.ang = Math.atan2(closest.y - this.y, closest.x - this.x);
+                proj.push(new Projectile(this.x, this.y, this.ang, 15, 'bullet'));
+                this.fireT = 0.3; SFX.play('shoot');
+            }
         }
     }
     draw(cam) { ctx.save(); ctx.translate(this.x-cam.x, this.y-cam.y); ctx.rotate(this.ang); ctx.fillStyle='#607d8b'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#111'; ctx.fillRect(0,-2,18,4); ctx.restore(); } 
@@ -865,8 +870,11 @@ class GameManager {
     reviveTeammate() {
         if(this.p.downed) return;
         if(Net.active) {
-            if(Net.isHost) { for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) { Net.sendTo(id, {t:'revive_req'}); } } } 
-            else { if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) { Net.sendToHost({t:'revive_req'}); } }
+            if(Net.isHost) {
+                for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) { Net.sendTo(id, {t:'revive_req'}); } }
+            } else {
+                if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) { Net.sendToHost({t:'revive_req'}); }
+            }
         }
     }
 
@@ -895,7 +903,7 @@ class GameManager {
     }
     buyWep(w, c) {
         if(this.p.money >= c && !this.p.downed) {
-            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) { this.p.money -= c; this.p.weps.push({...WEAPONS[w]}); alert(`Zakoupeno: ${WEAPONS[w].name}.`); UI.toggleGameMenu(this.menuOpen); } else alert("Tuto zbraň už máš!"); 
+            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) { this.p.money -= c; this.p.weps.push({...WEAPONS[w]}); alert(`Zakoupeno: ${WEAPONS[w].name}. Přepínej klávesami 1-${this.p.weps.length}`); UI.toggleGameMenu(this.menuOpen); } else alert("Tuto zbraň už máš!"); 
         }
     }
     craft(t) {
@@ -917,7 +925,6 @@ class GameManager {
 
     update(dt) {
         if(this.menuOpen || this.perkScreenOpen) return;
-
         this.ft.forEach(f => f.update(dt)); this.ft = this.ft.filter(f => f.life > 0);
 
         if (!Net.active || Net.isHost) {
@@ -981,9 +988,7 @@ class GameManager {
             let w = this.p.wep;
             if(w.type==='ranged' || w.type.includes('pierce')) {
                 if(w.ammo>0) {
-                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper');
-                    else if(w.type==='ranged_pierce') SFX.play('crossbow');
-                    else SFX.play('shoot'); 
+                    if(w.type==='ranged_pierce' && w.name==='Odstřelovačka') SFX.play('sniper'); else if(w.type==='ranged_pierce') SFX.play('crossbow'); else SFX.play('shoot'); 
                     this.shake = w.type.includes('pierce') ? 5 : 3; 
                     for(let i=0; i<w.p; i++) {
                         let a = this.p.ang+(Math.random()-0.5)*w.spread;
@@ -1068,7 +1073,7 @@ class GameManager {
             this.z = this.z.filter(z => {
                 if(z.hp <= 0) {
                     if (z.type === 'boomer') this.explode(z.x, z.y, 100, 100);
-                    if(this.p.perks.vamp > 0) { this.p.hp=Math.min(this.p.maxHp, this.p.hp+1); }
+                    if(this.p.vampirism) { this.p.hp=Math.min(this.p.maxHp, this.p.hp+1); }
 
                     this.p.money += z.type==='boss' ? 150 : 15; this.score += z.type==='boss' ? 500 : 50; 
                     this.addGameXp(z.type==='boss' ? 50 : 5);
