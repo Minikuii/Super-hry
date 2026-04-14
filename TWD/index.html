@@ -18,7 +18,7 @@
         .hud-text { font-size: 16px; color: #fff; font-weight: bold; margin-top: 4px; }
         #money-ui { color: #4caf50; font-size: 20px; }
         #xp-ui { color: #9c27b0; font-size: 18px; }
-        #key-ui { color: #ffd700; font-size: 16px; margin-top: 5px; font-weight: bold; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 4px; display: inline-block; border: 1px solid #444; }
+        #key-ui { color: #ffd700; font-size: 18px; margin-top: 5px; font-weight: bold; }
         
         #resources-ui { margin-top: 10px; font-size: 14px; color: #ddd; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; border: 1px solid #333; }
         #controls-ui { margin-top: 10px; font-size: 12px; color: #888; background: rgba(0,0,0,0.8); padding: 8px; border-radius: 5px; }
@@ -68,13 +68,13 @@
         <div class="hud-text" id="lvl-ui" style="color:#2196f3; font-size:12px;">Level 1</div>
         <div class="hud-text" id="money-ui">$0</div>
         <div class="hud-text" id="xp-ui">XP [online]: 0</div>
-        <div id="key-ui">Cíl patra: Neznámý</div>
+        <div id="key-ui">Klíč od patra: NE</div>
         <div class="hud-text" id="weapon-ui" style="margin-top: 10px;">Mačeta</div>
         <div class="hud-text" id="ammo-ui" style="color:#fbc02d;">Munice: ∞</div>
         <div class="hud-text" id="grenade-ui" style="color:#ff9800;">G: 0 | M: 0 | FB: 0 | F: 0 | T: 0 | MIN: 0</div>
         <div id="resources-ui">Šrot: <span id="res-sc">0</span> | Látka: <span id="res-cl">0</span><br>Chem: <span id="res-ch">0</span> | Dřevo: <span id="res-wd">0</span></div>
         <div id="controls-ui">
-            [1-4] Zbraně | [C] Craft<br>[E] Akce (Dveře/Automat) | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
+            [1-4] Zbraně | [B] Obchod | [C] Craft<br>[E] Patro/Automat | [Mezerník] Úskok<br>[G] Granát | [H] Molotov | [J] Flashbang<br>[R] Oživit | [T] Turret | [M] Mina
         </div>
     </div>
 
@@ -374,7 +374,7 @@ const Net = {
     startHostGame() {
         appState = 'game'; UI.show(''); document.getElementById('hud').style.display='block'; document.getElementById('wave-ui').style.display='block';
         game = new GameManager(selectedClass, null);
-        this.broadcast({ t: 'init_game', map: { grid: game.map.grid, startP: game.map.startP, stairs: game.map.stairs, barrels: game.map.barrels, vends: game.map.vends, req: game.req } });
+        this.broadcast({ t: 'init_game', map: { grid: game.map.grid, startP: game.map.startP, stairs: game.map.stairs, vends: game.map.vends, req: game.req } });
     }
 };
 
@@ -448,10 +448,9 @@ function drawEditor() {
 
 class GameMap {
     constructor(cGrid, isShopFloor=false) {
-        this.blood=[]; this.stairs={x:0,y:0}; this.barrels=[]; this.vends=[]; this.isShopFloor = isShopFloor;
+        this.blood=[]; this.stairs={x:0,y:0}; this.vends=[]; this.isShopFloor = isShopFloor;
         if(cGrid) {
             this.grid = cGrid.grid || cGrid;
-            this.barrels = cGrid.barrels || [];
             this.vends = cGrid.vends || [];
             if(cGrid.startP) { this.startP = cGrid.startP; this.stairs = cGrid.stairs; }
             else { 
@@ -462,19 +461,13 @@ class GameMap {
         } else this.generate();
     }
     generate() {
-        this.grid=Array(CFG.MAP_S).fill().map(()=>Array(CFG.MAP_S).fill(1)); let r=[]; this.barrels=[]; this.vends=[];
+        this.grid=Array(CFG.MAP_S).fill().map(()=>Array(CFG.MAP_S).fill(1)); let r=[]; this.vends=[];
         for(let i=0;i<14;i++) { let w=5+Math.floor(Math.random()*5), h=5+Math.floor(Math.random()*5), x=1+Math.floor(Math.random()*(CFG.MAP_S-w-2)), y=1+Math.floor(Math.random()*(CFG.MAP_S-h-2)); r.push({x,y,w,h}); for(let ry=y;ry<y+h;ry++) for(let rx=x;rx<x+w;rx++) this.grid[ry][rx]=0; }
         for(let i=0;i<r.length-1;i++) { let x1=Math.floor(r[i].x+r[i].w/2), y1=Math.floor(r[i].y+r[i].h/2), x2=Math.floor(r[i+1].x+r[i+1].w/2), y2=Math.floor(r[i+1].y+r[i+1].h/2); for(let x=Math.min(x1,x2);x<=Math.max(x1,x2);x++) this.grid[y1][x]=0; for(let y=Math.min(y1,y2);y<=Math.max(y1,y2);y++) this.grid[y][x2]=0; }
         this.startP={x:(r[0].x+2)*CFG.TS, y:(r[0].y+2)*CFG.TS}; this.stairs={x:(r[r.length-1].x+2)*CFG.TS, y:(r[r.length-1].y+2)*CFG.TS};
         
         if(!Net.active || Net.isHost) {
-            if(!this.isShopFloor) {
-                for(let i=0;i<5;i++) {
-                    let bx, by, tries=0;
-                    do { bx = Math.random()*CFG.MAP_S*CFG.TS; by = Math.random()*CFG.MAP_S*CFG.TS; tries++; } while(isWall(bx,by,20,this.grid) && tries<50);
-                    if(tries<50) this.barrels.push({x:bx, y:by, hp:50, active:true, trig:false, timer:1});
-                }
-            } else {
+            if(this.isShopFloor) {
                 for(let i=0;i<3;i++) {
                     let vx, vy, tries=0;
                     do { vx = Math.random()*CFG.MAP_S*CFG.TS; vy = Math.random()*CFG.MAP_S*CFG.TS; tries++; } while(isWall(vx,vy,30,this.grid) && tries<50);
@@ -778,12 +771,19 @@ class GameManager {
 
         this.z=[]; this.proj=[]; this.loot=[]; this.bars=[]; this.turrets=[]; this.ft=[]; this.fires=[]; this.mines_arr=[]; this.acids=[];
         this.timer=3; this.inter=true; this.active=true; this.menuOpen=null; this.shake=0; this.perkScreenOpen=false;
+        this.barrels = [];
         this.hasKey = this.req.type !== 'key'; 
         
         let vw = canvas.width / CFG.ZOOM || 800; let vh = canvas.height / CFG.ZOOM || 600;
         this.cam = {x: this.p.x - vw/2, y: this.p.y - vh/2}; 
 
         if(!Net.active || Net.isHost) {
+            if(!this.isShop) {
+                for(let i=0; i<6; i++) {
+                    let p = this.getValidSpawn(200);
+                    this.barrels.push(new Barrel(p.x, p.y));
+                }
+            }
             this.startWave(); 
         } 
     }
@@ -845,13 +845,13 @@ class GameManager {
                     if (getDist(x,y, Net.clientsData[id].x, Net.clientsData[id].y) < rad/2 && !Net.clientsData[id].downed) { Net.sendTo(id, {t:'dmg', val:dmg/3}); }
                 }
             }
-            this.map.barrels.forEach(b => {
+            this.barrels.forEach(b => {
                 if(b.active && getDist(x,y,b.x,b.y)<rad) { b.hp -= dmg; if(b.hp<=0) { b.active=false; setTimeout(()=>this.explode(b.x,b.y,180,300), 100); } }
             });
         }
     }
 
-    triggerBarrel(idx) { if(this.map.barrels[idx] && !this.map.barrels[idx].trig) { this.map.barrels[idx].trig = true; this.map.barrels[idx].timer = 1.0; } }
+    triggerBarrel(idx) { if(this.barrels[idx] && !this.barrels[idx].trig) { this.barrels[idx].trig = true; this.barrels[idx].timer = 1.0; } }
     createFirePool(x, y) { this.fires.push(new FirePool(x,y)); }
 
     throwProj(type) { 
@@ -867,8 +867,8 @@ class GameManager {
     reviveTeammate() {
         if(this.p.downed) return;
         if(Net.active) {
-            if(Net.isHost) { for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) Net.sendTo(id, {t:'revive_req'}); } } 
-            else { if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) Net.sendToHost({t:'revive_req'}); }
+            if(Net.isHost) { for (let id in Net.clientsData) { if (Net.clientsData[id].downed && getDist(this.p.x, this.p.y, Net.clientsData[id].x, Net.clientsData[id].y) < 50) { Net.sendTo(id, {t:'revive_req'}); } } } 
+            else { if (Net.hostData && Net.hostData.hdwn && getDist(this.p.x, this.p.y, Net.hostData.hx, Net.hostData.hy) < 50) { Net.sendToHost({t:'revive_req'}); } }
         }
     }
 
@@ -896,7 +896,7 @@ class GameManager {
                     this.floor++; this.score+=100;
                     let carryData = { floor: this.floor, hp: this.p.hp, maxHp: this.p.maxHp, stam: this.p.stam, money: this.p.money, xp: this.p.xp, gameXp: this.p.gameXp, lvl: this.p.lvl, nextLvl: this.p.nextLvl, grenades: this.p.grenades, molotovs: this.p.molotovs, flashbangs: this.p.flashbangs, barricades: this.p.barricades, turrets: this.p.turrets, mines: this.p.mines, res: this.p.res, weps: this.p.weps, dmgMult: this.p.dmgMult, vampirism: this.p.vampirism, spd: this.p.spd, pierce: this.p.perkPierce, score: this.score, wave: this.wave, isNight: this.isNight, dayTimer: this.dayTimer };
                     game = new GameManager(selectedClass, null, carryData);
-                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, barrels:game.map.barrels, vends:game.map.vends, req:game.req}, carry: carryData}); 
+                    if(Net.active) Net.broadcast({t:'init_game', map:{grid:game.map.grid, startP:game.map.startP, stairs:game.map.stairs, vends:game.map.vends, req:game.req}, carry: carryData}); 
                 } else alert(msg);
             } 
         } 
@@ -915,7 +915,7 @@ class GameManager {
     }
     buyWep(w, c) {
         if(this.p.money >= c && !this.p.downed) {
-            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) { this.p.money -= c; this.p.weps.push({...WEAPONS[w]}); alert(`Zakoupeno: ${WEAPONS[w].name}. Přepínej klávesami 1-${this.p.weps.length}`); UI.toggleGameMenu(this.menuOpen); } else alert("Tuto zbraň už máš!"); 
+            if(!this.p.weps.some(we=>we.name === WEAPONS[w].name)) { this.p.money -= c; this.p.weps.push({...WEAPONS[w]}); alert(`Zakoupeno: ${WEAPONS[w].name}.`); UI.toggleGameMenu(this.menuOpen); } else alert("Tuto zbraň už máš!"); 
         }
     }
     craft(t) {
@@ -956,7 +956,7 @@ class GameManager {
                     tu:this.turrets.map(tu=>({x:tu.x,y:tu.y,a:tu.ang})),
                     f:this.fires.map(f=>({x:f.x,y:f.y,l:f.life})),
                     m:this.mines_arr.map(m=>({x:m.x,y:m.y})),
-                    br:(this.map.barrels||[]).filter(br=>br.active).map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
+                    br:this.barrels.filter(br=>br.active).map(br=>({x:br.x,y:br.y,tr:br.trig,tm:br.timer})),
                     ac:this.acids.map(a=>({x:a.x, y:a.y, tm:a.timer})),
                     w:this.wave, tm:this.timer, int:this.inter, req: this.req, hk: this.hasKey 
                 });
@@ -976,7 +976,7 @@ class GameManager {
                     this.z = Net.hostData.z || []; this.proj = Net.hostData.p || []; this.loot = Net.hostData.l || []; this.bars = Net.hostData.b || []; this.turrets = Net.hostData.tu || [];
                     this.req = Net.hostData.req; this.hasKey = Net.hostData.hk; this.isNight = Net.hostData.nt; this.dayTimer = Net.hostData.ntm;
                     this.fires = Net.hostData.f || []; this.mines_arr = Net.hostData.m || [];
-                    this.map.barrels = Net.hostData.br || []; this.acids = Net.hostData.ac || [];
+                    this.barrels = Net.hostData.br || []; this.acids = Net.hostData.ac || [];
                 }
             }
         }
@@ -1046,9 +1046,9 @@ class GameManager {
                             if(Net.isHost) Net.broadcast({t:'dmg_num', x:z.x, y:z.y, txt:Math.floor(dmg), col:'#fff'});
                         } 
                     }); 
-                    this.map.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) this.triggerBarrel(i); });
+                    this.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) this.triggerBarrel(i); });
                 } else {
-                    this.map.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) Net.sendToHost({t:'hit_barrel', idx:i}); });
+                    this.barrels.forEach((br, i) => { if(getDist(this.p.x, this.p.y, br.x, br.y) < w.range) Net.sendToHost({t:'hit_barrel', idx:i}); });
                 }
                 if(this.p.stam>=10 && w.type!=='melee_cont') this.p.stam -= 10;
                 this.p.fireT = w.rate * sMod;
@@ -1075,7 +1075,7 @@ class GameManager {
                             if(pr.pierce > 0) pr.pierce--; else if(pr.type.includes('pierce')) pr.active = false; 
                         } 
                     }); 
-                    this.map.barrels.forEach((br, i)=>{ if(pr.active && getDist(pr.x, pr.y, br.x, br.y) < br.r && pr.type==='bullet') { pr.active=false; this.triggerBarrel(i); } });
+                    this.barrels.forEach((br, i)=>{ if(pr.active && getDist(pr.x, pr.y, br.x, br.y) < br.r && pr.type==='bullet') { pr.active=false; this.triggerBarrel(i); } });
                 }
                 
                 if(pr.type === 'acid_spit' && pr.active) {
@@ -1094,7 +1094,7 @@ class GameManager {
 
             this.z.forEach(z => z.update(dt, targets, this.map.grid, this.bars, this.turrets, this.proj));
             this.turrets.forEach(tu => tu.update(dt, this.z, this.proj, true));
-            this.map.barrels.forEach(br => br.update(dt, this));
+            this.barrels.forEach(br => br.update(dt, this));
             this.acids.forEach(a => a.update(dt, targets, this));
 
             this.z = this.z.filter(z => {
@@ -1123,7 +1123,7 @@ class GameManager {
                 } return true; 
             });
             this.proj = this.proj.filter(pr => pr.active); this.bars = this.bars.filter(b => b.hp > 0); this.turrets = this.turrets.filter(tu => tu.hp > 0);
-            this.map.barrels = this.map.barrels.filter(br => br.active); this.acids = this.acids.filter(a => a.timer > 0);
+            this.barrels = this.barrels.filter(br => br.active); this.acids = this.acids.filter(a => a.timer > 0);
             this.fires = this.fires.filter(f => f.life > 0); this.mines_arr = this.mines_arr.filter(m => m.active);
         } else {
             this.turrets.forEach(tu => { tu.fireT-=dt; if(tu.fireT<=0) tu.fireT=0.3; }); 
@@ -1208,7 +1208,7 @@ class GameManager {
                 ctx.fillStyle=c.downed?'#f00':'#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(c.downed?"POMOC!":(c.name || "Hráč"), c.x-this.cam.x, c.y-this.cam.y - 25);
             }
         } else {
-            this.acids.forEach(a=>a.draw(this.cam)); this.loot.forEach(l=>l.draw(this.cam)); this.map.barrels.forEach(br=>br.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam)); this.turrets.forEach(tu=>tu.draw(this.cam));
+            this.acids.forEach(a=>a.draw(this.cam)); this.loot.forEach(l=>l.draw(this.cam)); this.barrels.forEach(br=>br.draw(this.cam)); this.bars.forEach(b=>b.draw(this.cam)); this.turrets.forEach(tu=>tu.draw(this.cam));
             this.mines_arr.forEach(m=>m.draw(this.cam)); this.fires.forEach(f=>f.draw(this.cam));
             this.proj.forEach(pr=>pr.draw(this.cam)); this.z.forEach(z=>z.draw(this.cam));
             
